@@ -11,6 +11,8 @@ export async function GET(
       include: {
         category: true,
         reviews: {
+          take: 5,
+          orderBy: { createdAt: 'desc' },
           include: {
             user: {
               select: {
@@ -20,9 +22,8 @@ export async function GET(
               },
             },
           },
-          orderBy: { createdAt: 'desc' },
-          take: 10,
         },
+        screenshots: true,
       },
     });
 
@@ -67,25 +68,48 @@ export async function PUT(
       categoryId,
     } = body;
 
-    const tool = await prisma.tool.update({
+    const tool = await prisma.tool.findUnique({
       where: { slug: params.slug },
+    });
+
+    if (!tool) {
+      return NextResponse.json(
+        { error: 'Tool not found' },
+        { status: 404 }
+      );
+    }
+
+    // If category changed, update counts
+    if (categoryId && categoryId !== tool.categoryId) {
+      await prisma.category.update({
+        where: { id: tool.categoryId },
+        data: { toolCount: { decrement: 1 } },
+      });
+      await prisma.category.update({
+        where: { id: categoryId },
+        data: { toolCount: { increment: 1 } },
+      });
+    }
+
+    const updatedTool = await prisma.tool.update({
+      where: { id: tool.id },
       data: {
-        name,
-        description,
-        longDescription: longDescription || description,
-        logoUrl,
-        websiteUrl,
-        affiliateUrl,
-        pricingModel: pricingModel.toUpperCase(),
-        priceRange,
-        categoryId,
+        name: name || tool.name,
+        description: description || tool.description,
+        longDescription: longDescription || tool.longDescription,
+        logoUrl: logoUrl || tool.logoUrl,
+        websiteUrl: websiteUrl || tool.websiteUrl,
+        affiliateUrl: affiliateUrl !== undefined ? affiliateUrl : tool.affiliateUrl,
+        pricingModel: pricingModel ? pricingModel.toUpperCase() : tool.pricingModel,
+        priceRange: priceRange !== undefined ? priceRange : tool.priceRange,
+        categoryId: categoryId || tool.categoryId,
       },
       include: {
         category: true,
       },
     });
 
-    return NextResponse.json(tool);
+    return NextResponse.json(updatedTool);
   } catch (error) {
     console.error('Error updating tool:', error);
     return NextResponse.json(
@@ -111,14 +135,28 @@ export async function DELETE(
       );
     }
 
-    await prisma.tool.delete({
-      where: { slug: params.slug },
-    });
-
     // Update category tool count
     await prisma.category.update({
       where: { id: tool.categoryId },
       data: { toolCount: { decrement: 1 } },
+    });
+
+    // Delete related records first
+    await prisma.review.deleteMany({
+      where: { toolId: tool.id },
+    });
+
+    await prisma.bookmark.deleteMany({
+      where: { toolId: tool.id },
+    });
+
+    await prisma.screenshot.deleteMany({
+      where: { toolId: tool.id },
+    });
+
+    // Delete the tool
+    await prisma.tool.delete({
+      where: { id: tool.id },
     });
 
     return NextResponse.json({ message: 'Tool deleted successfully' });

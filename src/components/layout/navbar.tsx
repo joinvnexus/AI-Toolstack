@@ -1,29 +1,291 @@
-import Link from 'next/link';
+'use client';
 
-const links = [
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
+import { Menu, X, Search, User, LogOut, Settings, Bookmark, LayoutDashboard } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/tools', label: 'Tools' },
   { href: '/blog', label: 'Blog' },
-  { href: '/dashboard', label: 'Dashboard' }
 ];
 
 export function Navbar() {
+  const router = useRouter();
+  const supabase = createClient();
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setUser(user);
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkUser();
+  }, [supabase]);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setUserMenuOpen(false);
+    router.push('/');
+    router.refresh();
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/tools?q=${encodeURIComponent(searchQuery)}`);
+      setSearchOpen(false);
+      setSearchQuery('');
+    }
+  };
+
+  const userLinks = user
+    ? [
+        { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { href: '/dashboard?tab=bookmarks', label: 'Bookmarks', icon: Bookmark },
+        { href: '/dashboard?tab=settings', label: 'Settings', icon: Settings },
+      ]
+    : [];
+
+  const isAdmin = user?.user_metadata?.role === 'admin' || user?.role === 'ADMIN';
+
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-brand-background/75 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-brand-background/80 backdrop-blur-xl">
       <nav className="container-shell flex h-16 items-center justify-between">
-        <Link href="/" className="text-lg font-semibold">
-          AI Toolstack
+        {/* Logo */}
+        <Link href="/" className="text-lg font-semibold tracking-tight">
+          <span className="text-brand-primary">AI</span> Toolstack
         </Link>
-        <ul className="flex items-center gap-6 text-sm text-brand-muted">
-          {links.map((link) => (
-            <li key={link.href}>
-              <Link className="transition hover:text-white" href={link.href}>
-                {link.label}
-              </Link>
-            </li>
+
+        {/* Desktop Navigation */}
+        <div className="hidden items-center gap-6 md:flex">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="text-sm text-brand-muted transition hover:text-white"
+            >
+              {link.label}
+            </Link>
           ))}
-        </ul>
+        </div>
+
+        {/* Right Side Actions */}
+        <div className="flex items-center gap-2">
+          {/* Search Button */}
+          <button
+            onClick={() => setSearchOpen(!searchOpen)}
+            className="rounded-lg p-2 text-brand-muted hover:bg-white/10 hover:text-white"
+            aria-label="Search"
+          >
+            <Search className="h-5 w-5" />
+          </button>
+
+          {loading ? (
+            <div className="h-8 w-8 animate-pulse rounded-full bg-white/10" />
+          ) : user ? (
+            <>
+              {/* User Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex items-center gap-2 rounded-lg p-1.5 text-brand-muted hover:bg-white/10 hover:text-white"
+                >
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-primary text-sm font-medium">
+                    {user.email?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                </button>
+
+                <AnimatePresence>
+                  {userMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="absolute right-0 mt-2 w-48 rounded-xl border border-white/10 bg-brand-surface py-1 shadow-lg"
+                    >
+                      <div className="border-b border-white/10 px-4 py-2">
+                        <p className="truncate text-sm font-medium">{user.email}</p>
+                      </div>
+                      {userLinks.map((link) => (
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-2 px-4 py-2 text-sm text-brand-muted hover:bg-white/5 hover:text-white"
+                        >
+                          <link.icon className="h-4 w-4" />
+                          {link.label}
+                        </Link>
+                      ))}
+                      {isAdmin && (
+                        <Link
+                          href="/admin"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-2 border-t border-white/10 px-4 py-2 text-sm text-brand-muted hover:bg-white/5 hover:text-white"
+                        >
+                          <Settings className="h-4 w-4" />
+                          Admin Panel
+                        </Link>
+                      )}
+                      <button
+                        onClick={handleSignOut}
+                        className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-white/5"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Sign Out
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Link
+                href="/login"
+                className="rounded-lg px-3 py-2 text-sm text-brand-muted hover:text-white"
+              >
+                Log In
+              </Link>
+              <Link
+                href="/signup"
+                className="rounded-lg bg-brand-primary px-3 py-2 text-sm font-medium text-white hover:bg-brand-primary/90"
+              >
+                Sign Up
+              </Link>
+            </div>
+          )}
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="rounded-lg p-2 text-brand-muted hover:bg-white/10 hover:text-white md:hidden"
+            aria-label="Menu"
+          >
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </nav>
+
+      {/* Search Overlay */}
+      <AnimatePresence>
+        {searchOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="border-b border-white/10 bg-brand-surface"
+          >
+            <div className="container-shell py-4">
+              <form onSubmit={handleSearch} className="relative">
+                <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-brand-muted" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search tools, categories..."
+                  className="w-full rounded-xl border border-white/10 bg-black/20 py-3 pl-12 pr-4 text-sm outline-none placeholder:text-brand-muted focus:border-brand-primary"
+                  autoFocus
+                />
+              </form>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="border-b border-white/10 bg-brand-surface md:hidden"
+          >
+            <div className="container-shell py-4 space-y-2">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block rounded-lg px-4 py-2 text-brand-muted hover:bg-white/5 hover:text-white"
+                >
+                  {link.label}
+                </Link>
+              ))}
+              {user ? (
+                <>
+                  {userLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block rounded-lg px-4 py-2 text-brand-muted hover:bg-white/5 hover:text-white"
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                  <button
+                    onClick={() => {
+                      handleSignOut();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="block w-full rounded-lg px-4 py-2 text-left text-red-400 hover:bg-white/5"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <div className="space-y-2 pt-2">
+                  <Link
+                    href="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block rounded-lg border border-white/10 px-4 py-2 text-center text-brand-muted hover:bg-white/5 hover:text-white"
+                  >
+                    Log In
+                  </Link>
+                  <Link
+                    href="/signup"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block rounded-lg bg-brand-primary px-4 py-2 text-center font-medium text-white hover:bg-brand-primary/90"
+                  >
+                    Sign Up
+                  </Link>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Click outside to close menus */}
+      {(userMenuOpen || mobileMenuOpen || searchOpen) && (
+        <div
+          className="fixed inset-0 z-[-1]"
+          onClick={() => {
+            setUserMenuOpen(false);
+            setMobileMenuOpen(false);
+            setSearchOpen(false);
+          }}
+        />
+      )}
     </header>
   );
 }

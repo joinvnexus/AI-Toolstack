@@ -1,0 +1,316 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Loader2, ArrowLeft, Save } from 'lucide-react';
+
+const toolSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  description: z.string().min(1, 'Description is required'),
+  longDescription: z.string().optional(),
+  logoUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  websiteUrl: z.string().url('Must be a valid URL'),
+  affiliateUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  pricingModel: z.enum(['FREE', 'PAID', 'FREEMIUM']),
+  priceRange: z.string().optional(),
+  categoryId: z.string().min(1, 'Category is required'),
+});
+
+type ToolFormData = z.infer<typeof toolSchema>;
+
+type Category = {
+  id: string;
+  name: string;
+};
+
+type Tool = {
+  id: string;
+  name: string;
+  description: string;
+  longDescription: string;
+  logoUrl: string;
+  websiteUrl: string;
+  affiliateUrl: string;
+  pricingModel: string;
+  priceRange: string;
+  categoryId: string;
+};
+
+export default function EditToolPage() {
+  const router = useRouter();
+  const params = useParams();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [fetchingData, setFetchingData] = useState(true);
+  const [tool, setTool] = useState<Tool | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<ToolFormData>({
+    resolver: zodResolver(toolSchema),
+    defaultValues: {
+      pricingModel: 'FREE',
+    },
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [toolRes, categoriesRes] = await Promise.all([
+          fetch(`/api/tools/${params.slug}`),
+          fetch('/api/categories'),
+        ]);
+
+        if (toolRes.ok) {
+          const toolData = await toolRes.json();
+          setTool(toolData);
+          reset({
+            name: toolData.name,
+            description: toolData.description,
+            longDescription: toolData.longDescription || '',
+            logoUrl: toolData.logoUrl || '',
+            websiteUrl: toolData.websiteUrl,
+            affiliateUrl: toolData.affiliateUrl || '',
+            pricingModel: toolData.pricingModel as 'FREE' | 'PAID' | 'FREEMIUM',
+            priceRange: toolData.priceRange || '',
+            categoryId: toolData.categoryId,
+          });
+        }
+
+        if (categoriesRes.ok) {
+          const categoriesData = await categoriesRes.json();
+          setCategories(categoriesData);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setFetchingData(false);
+      }
+    };
+
+    if (params.slug) {
+      fetchData();
+    }
+  }, [params.slug, reset]);
+
+  const onSubmit = async (data: ToolFormData) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/tools/${params.slug}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...data,
+          logoUrl: data.logoUrl || undefined,
+          affiliateUrl: data.affiliateUrl || undefined,
+          longDescription: data.longDescription || data.description,
+        }),
+      });
+
+      if (res.ok) {
+        router.push('/admin/tools');
+      } else {
+        const errorData = await res.json();
+        alert(errorData.error || 'Failed to update tool');
+      }
+    } catch (error) {
+      console.error('Error updating tool:', error);
+      alert('Failed to update tool');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (fetchingData) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
+      </div>
+    );
+  }
+
+  if (!tool) {
+    return (
+      <div className="py-20 text-center">
+        <h1 className="text-2xl font-bold">Tool not found</h1>
+        <Link href="/admin/tools" className="mt-4 inline-block text-brand-primary hover:underline">
+          Back to tools
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <Link
+          href="/admin/tools"
+          className="rounded-lg p-2 text-brand-muted hover:bg-white/10 hover:text-white"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+        <div>
+          <h1 className="text-2xl font-bold">Edit Tool</h1>
+          <p className="text-brand-muted">Update "{tool.name}" details</p>
+        </div>
+      </div>
+
+      {/* Form */}
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-2xl">
+        <div className="rounded-xl border border-white/10 bg-brand-surface p-6 space-y-4">
+          <h2 className="text-lg font-semibold">Basic Information</h2>
+          
+          <div>
+            <label className="block text-sm font-medium mb-2">Tool Name *</label>
+            <input
+              {...register('name')}
+              type="text"
+              placeholder="e.g., ChatGPT, Midjourney"
+              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+            />
+            {errors.name && (
+              <p className="mt-1 text-sm text-red-500">{errors.name.message}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Short Description *</label>
+            <textarea
+              {...register('description')}
+              placeholder="Brief description (1-2 sentences)"
+              rows={2}
+              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+            />
+            {errors.description && (
+              <p className="mt-1 text-sm text-red-500">{errors.description.message}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Long Description</label>
+            <textarea
+              {...register('longDescription')}
+              placeholder="Detailed description"
+              rows={4}
+              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Category *</label>
+            <select
+              {...register('categoryId')}
+              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary"
+            >
+              <option value="">Select a category</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+            {errors.categoryId && (
+              <p className="mt-1 text-sm text-red-500">{errors.categoryId.message}</p>
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-white/10 bg-brand-surface p-6 space-y-4">
+          <h2 className="text-lg font-semibold">Pricing & Links</h2>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium mb-2">Pricing Model *</label>
+              <select
+                {...register('pricingModel')}
+                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary"
+              >
+                <option value="FREE">Free</option>
+                <option value="PAID">Paid</option>
+                <option value="FREEMIUM">Freemium</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Price Range</label>
+              <input
+                {...register('priceRange')}
+                type="text"
+                placeholder="e.g., $10-30/month"
+                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Website URL *</label>
+            <input
+              {...register('websiteUrl')}
+              type="url"
+              placeholder="https://example.com"
+              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+            />
+            {errors.websiteUrl && (
+              <p className="mt-1 text-sm text-red-500">{errors.websiteUrl.message}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Logo URL</label>
+            <input
+              {...register('logoUrl')}
+              type="url"
+              placeholder="https://example.com/logo.png"
+              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+            />
+            {errors.logoUrl && (
+              <p className="mt-1 text-sm text-red-500">{errors.logoUrl.message}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Affiliate URL</label>
+            <input
+              {...register('affiliateUrl')}
+              type="url"
+              placeholder="https://example.com/affiliate"
+              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+            />
+            {errors.affiliateUrl && (
+              <p className="mt-1 text-sm text-red-500">{errors.affiliateUrl.message}</p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-4">
+          <Link
+            href="/admin/tools"
+            className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium hover:bg-white/10"
+          >
+            Cancel
+          </Link>
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex items-center gap-2 rounded-lg bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary/90 disabled:opacity-50"
+          >
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
+            Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}

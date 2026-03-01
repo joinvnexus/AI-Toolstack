@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ExternalLink, Star, MapPin, DollarSign, Loader2, Bookmark, Share2 } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
+import { ExternalLink, Star, MapPin, DollarSign, Loader2, Bookmark, Share2, Send } from 'lucide-react';
 
 type Tool = {
   id: string;
@@ -37,9 +38,18 @@ type Tool = {
 
 export default function ToolDetailsPage() {
   const params = useParams();
+  const supabase = createClient();
   const [tool, setTool] = useState<Tool | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [user, setUser] = useState<any>(null);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [submittingReview, setSubmittingReview] = useState(false);
+  
+  // Review form state
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewContent, setReviewContent] = useState('');
+  const [reviewError, setReviewError] = useState('');
 
   useEffect(() => {
     const fetchTool = async () => {
@@ -55,10 +65,110 @@ export default function ToolDetailsPage() {
         setLoading(false);
       }
     };
+
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      
+      // Check if bookmarked
+      if (user && tool) {
+        const res = await fetch('/api/user/bookmarks');
+        if (res.ok) {
+          const bookmarks = await res.json();
+          const bookmarked = bookmarks.some((b: any) => b.tool.id === tool.id);
+          setIsBookmarked(bookmarked);
+        }
+      }
+    };
+
     if (params.slug) {
       fetchTool();
     }
-  }, [params.slug]);
+  }, [params.slug, supabase]);
+
+  useEffect(() => {
+    const checkBookmarkStatus = async () => {
+      if (user && tool) {
+        const res = await fetch('/api/user/bookmarks');
+        if (res.ok) {
+          const bookmarks = await res.json();
+          const bookmarked = bookmarks.some((b: any) => b.tool.id === tool.id);
+          setIsBookmarked(bookmarked);
+        }
+      }
+    };
+    checkBookmarkStatus();
+  }, [user, tool]);
+
+  const handleBookmark = async () => {
+    if (!user) {
+      window.location.href = '/login';
+      return;
+    }
+
+    try {
+      if (isBookmarked) {
+        await fetch(`/api/user/bookmarks?toolId=${tool?.id}`, {
+          method: 'DELETE',
+        });
+        setIsBookmarked(false);
+      } else {
+        await fetch('/api/user/bookmarks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ toolId: tool?.id }),
+        });
+        setIsBookmarked(true);
+      }
+    } catch (error) {
+      console.error('Error toggling bookmark:', error);
+    }
+  };
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) {
+      window.location.href = '/login';
+      return;
+    }
+
+    if (!reviewContent.trim()) {
+      setReviewError('Please write a review');
+      return;
+    }
+
+    setSubmittingReview(true);
+    setReviewError('');
+
+    try {
+      const res = await fetch(`/api/tools/${params.slug}/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rating: reviewRating,
+          content: reviewContent,
+        }),
+      });
+
+      if (res.ok) {
+        // Refresh tool data
+        const toolRes = await fetch(`/api/tools/${params.slug}`);
+        if (toolRes.ok) {
+          const data = await toolRes.json();
+          setTool(data);
+        }
+        setReviewContent('');
+        setReviewRating(5);
+      } else {
+        const data = await res.json();
+        setReviewError(data.error || 'Failed to submit review');
+      }
+    } catch (error) {
+      setReviewError('Failed to submit review');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -80,9 +190,19 @@ export default function ToolDetailsPage() {
     );
   }
 
+  // Format pricing model
+  const formatPricing = (model: string) => {
+    const models: Record<string, string> = {
+      FREE: 'Free',
+      PAID: 'Paid',
+      FREEMIUM: 'Freemium',
+    };
+    return models[model] || model;
+  };
+
   const tabs = [
     { id: 'overview', label: 'Overview' },
-    { id: 'reviews', label: 'Reviews' },
+    { id: 'reviews', label: `Reviews (${tool.reviewCount})` },
     { id: 'alternatives', label: 'Alternatives' },
   ];
 
@@ -103,12 +223,22 @@ export default function ToolDetailsPage() {
               </div>
               
               <div className="flex gap-3">
-                <button className="flex items-center gap-2 rounded-xl bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary/90">
+                <a 
+                  href={tool.websiteUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 rounded-xl bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary/90"
+                >
                   <ExternalLink className="h-4 w-4" />
                   Visit Website
-                </button>
-                <button className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium hover:bg-white/10">
-                  <Bookmark className="h-4 w-4" />
+                </a>
+                <button 
+                  onClick={handleBookmark}
+                  className={`flex items-center gap-2 rounded-xl border border-white/10 px-4 py-2 text-sm font-medium hover:bg-white/10 ${
+                    isBookmarked ? 'bg-brand-primary/20 text-brand-primary' : 'bg-white/5'
+                  }`}
+                >
+                  <Bookmark className={`h-4 w-4 ${isBookmarked ? 'fill-current' : ''}`} />
                 </button>
                 <button className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium hover:bg-white/10">
                   <Share2 className="h-4 w-4" />
@@ -128,7 +258,7 @@ export default function ToolDetailsPage() {
               </div>
               <div className="flex items-center gap-2 text-sm text-brand-muted">
                 <DollarSign className="h-4 w-4" />
-                {tool.pricingModel}
+                {formatPricing(tool.pricingModel)}
                 {tool.priceRange && ` • ${tool.priceRange}`}
               </div>
             </div>
@@ -177,7 +307,7 @@ export default function ToolDetailsPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-brand-muted">Pricing</span>
-                  <span>{tool.pricingModel}</span>
+                  <span>{formatPricing(tool.pricingModel)}</span>
                 </div>
                 {tool.priceRange && (
                   <div className="flex justify-between">
@@ -197,6 +327,68 @@ export default function ToolDetailsPage() {
 
       {activeTab === 'reviews' && (
         <div className="space-y-6">
+          {/* Add Review Form */}
+          {user ? (
+            <div className="rounded-2xl border border-white/10 bg-brand-surface p-6">
+              <h2 className="text-xl font-semibold">Write a Review</h2>
+              <form onSubmit={handleSubmitReview} className="mt-4 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Rating</label>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setReviewRating(star)}
+                        className="focus:outline-none"
+                      >
+                        <Star
+                          className={`h-6 w-6 transition ${
+                            star <= reviewRating
+                              ? 'text-yellow-500 fill-yellow-500'
+                              : 'text-gray-600 hover:text-gray-400'
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Your Review</label>
+                  <textarea
+                    value={reviewContent}
+                    onChange={(e) => setReviewContent(e.target.value)}
+                    placeholder="Share your experience with this tool..."
+                    rows={4}
+                    className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+                  />
+                </div>
+                {reviewError && (
+                  <p className="text-sm text-red-500">{reviewError}</p>
+                )}
+                <button
+                  type="submit"
+                  disabled={submittingReview}
+                  className="flex items-center gap-2 rounded-lg bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary/90 disabled:opacity-50"
+                >
+                  {submittingReview ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                  Submit Review
+                </button>
+              </form>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-white/10 bg-brand-surface p-6">
+              <p className="text-brand-muted">
+                <Link href="/login" className="text-brand-primary hover:underline">Sign in</Link> to write a review.
+              </p>
+            </div>
+          )}
+
+          {/* Reviews List */}
           <div className="rounded-2xl border border-white/10 bg-brand-surface p-6">
             <h2 className="text-xl font-semibold">User Reviews</h2>
             {tool.reviews.length > 0 ? (
