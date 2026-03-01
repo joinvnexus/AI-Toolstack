@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Loader2, Plus, Search, Edit, Trash2, Eye, FileText } from 'lucide-react';
+import { useAdminCheck } from '@/lib/hooks/use-admin-check';
+import { Loader2, Plus, Search, Edit, Trash2, Eye, AlertCircle } from 'lucide-react';
 
 type BlogPost = {
   id: string;
@@ -22,15 +23,19 @@ type BlogPost = {
 };
 
 export default function AdminPostsPage() {
+  const { isAdmin, isLoading: adminLoading } = useAdminCheck();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!adminLoading && !isAdmin) {
+      return;
+    }
+
     const fetchPosts = async () => {
       try {
-        // For admin, we might want to fetch all posts including unpublished
         const res = await fetch('/api/blog?limit=100');
         if (res.ok) {
           const data = await res.json();
@@ -44,7 +49,7 @@ export default function AdminPostsPage() {
     };
 
     fetchPosts();
-  }, []);
+  }, [adminLoading, isAdmin]);
 
   const handleDelete = async (post: BlogPost) => {
     if (!confirm(`Are you sure you want to delete "${post.title}"?`)) {
@@ -75,10 +80,23 @@ export default function AdminPostsPage() {
     post.excerpt?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  if (loading) {
+  if (adminLoading || loading) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <AlertCircle className="h-12 w-12 text-red-500" />
+        <h1 className="mt-4 text-2xl font-bold">Access Denied</h1>
+        <p className="mt-2 text-brand-muted">You don't have permission to access this page.</p>
+        <Link href="/dashboard" className="mt-4 text-brand-primary hover:underline">
+          Go to Dashboard
+        </Link>
       </div>
     );
   }
@@ -113,7 +131,7 @@ export default function AdminPostsPage() {
       </div>
 
       {/* Posts Table */}
-      <div className="rounded-xl border border-white/10 bg-brand-surface overflow-hidden">
+      <div className="overflow-hidden rounded-xl border border-white/10 bg-brand-surface">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -133,7 +151,7 @@ export default function AdminPostsPage() {
                     <td className="px-4 py-3">
                       <div>
                         <p className="font-medium">{post.title}</p>
-                        <p className="text-sm text-brand-muted truncate max-w-xs">{post.excerpt}</p>
+                        <p className="max-w-xs truncate text-sm text-brand-muted">{post.excerpt}</p>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-sm">

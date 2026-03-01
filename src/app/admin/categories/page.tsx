@@ -4,7 +4,9 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, Plus, Search, Edit, Trash2 } from 'lucide-react';
+import Link from 'next/link';
+import { useAdminCheck } from '@/lib/hooks/use-admin-check';
+import { Loader2, Plus, Search, Edit, Trash2, AlertCircle } from 'lucide-react';
 
 const categorySchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -24,6 +26,7 @@ type Category = {
 };
 
 export default function AdminCategoriesPage() {
+  const { isAdmin, isLoading: adminLoading } = useAdminCheck();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -42,8 +45,12 @@ export default function AdminCategoriesPage() {
   });
 
   useEffect(() => {
+    if (!adminLoading && !isAdmin) {
+      return;
+    }
+
     fetchCategories();
-  }, []);
+  }, [adminLoading, isAdmin]);
 
   const fetchCategories = async () => {
     try {
@@ -134,10 +141,23 @@ export default function AdminCategoriesPage() {
     cat.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  if (loading) {
+  if (adminLoading || loading) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <AlertCircle className="h-12 w-12 text-red-500" />
+        <h1 className="mt-4 text-2xl font-bold">Access Denied</h1>
+        <p className="mt-2 text-brand-muted">You don't have permission to access this page.</p>
+        <Link href="/dashboard" className="mt-4 text-brand-primary hover:underline">
+          Go to Dashboard
+        </Link>
       </div>
     );
   }
@@ -162,12 +182,12 @@ export default function AdminCategoriesPage() {
       {/* Add/Edit Form */}
       {showForm && (
         <div className="rounded-xl border border-white/10 bg-brand-surface p-6">
-          <h2 className="text-lg font-semibold mb-4">
+          <h2 className="mb-4 text-lg font-semibold">
             {editingCategory ? 'Edit Category' : 'Add New Category'}
           </h2>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-w-xl">
             <div>
-              <label className="block text-sm font-medium mb-2">Name *</label>
+              <label className="mb-2 block text-sm font-medium">Name *</label>
               <input
                 {...register('name')}
                 type="text"
@@ -180,7 +200,7 @@ export default function AdminCategoriesPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Description</label>
+              <label className="mb-2 block text-sm font-medium">Description</label>
               <textarea
                 {...register('description')}
                 placeholder="Brief description"
@@ -190,7 +210,7 @@ export default function AdminCategoriesPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Icon (emoji or name)</label>
+              <label className="mb-2 block text-sm font-medium">Icon (emoji or name)</label>
               <input
                 {...register('icon')}
                 type="text"

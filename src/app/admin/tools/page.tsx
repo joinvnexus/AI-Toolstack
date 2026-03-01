@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Loader2, Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
+import { useAdminCheck } from '@/lib/hooks/use-admin-check';
+import { Loader2, Plus, Search, Edit, Trash2, Eye, AlertCircle } from 'lucide-react';
 
 type Tool = {
   id: string;
@@ -28,6 +29,7 @@ type Category = {
 
 export default function AdminToolsPage() {
   const router = useRouter();
+  const { isAdmin, isLoading: adminLoading, user } = useAdminCheck();
   const supabase = createClient();
   const [tools, setTools] = useState<Tool[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -36,6 +38,10 @@ export default function AdminToolsPage() {
   const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!adminLoading && !isAdmin) {
+      return;
+    }
+
     const fetchData = async () => {
       try {
         const [toolsRes, categoriesRes] = await Promise.all([
@@ -60,7 +66,7 @@ export default function AdminToolsPage() {
     };
 
     fetchData();
-  }, []);
+  }, [adminLoading, isAdmin]);
 
   const handleDelete = async (tool: Tool) => {
     if (!confirm(`Are you sure you want to delete "${tool.name}"?`)) {
@@ -101,10 +107,23 @@ export default function AdminToolsPage() {
     return models[model] || model;
   };
 
-  if (loading) {
+  if (adminLoading || loading) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <AlertCircle className="h-12 w-12 text-red-500" />
+        <h1 className="mt-4 text-2xl font-bold">Access Denied</h1>
+        <p className="mt-2 text-brand-muted">You don't have permission to access this page.</p>
+        <Link href="/dashboard" className="mt-4 text-brand-primary hover:underline">
+          Go to Dashboard
+        </Link>
       </div>
     );
   }
@@ -139,7 +158,7 @@ export default function AdminToolsPage() {
       </div>
 
       {/* Tools Table */}
-      <div className="rounded-xl border border-white/10 bg-brand-surface overflow-hidden">
+      <div className="overflow-hidden rounded-xl border border-white/10 bg-brand-surface">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -159,7 +178,7 @@ export default function AdminToolsPage() {
                     <td className="px-4 py-3">
                       <div>
                         <p className="font-medium">{tool.name}</p>
-                        <p className="text-sm text-brand-muted truncate max-w-xs">{tool.description}</p>
+                        <p className="max-w-xs truncate text-sm text-brand-muted">{tool.description}</p>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-sm">
