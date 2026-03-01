@@ -1,11 +1,20 @@
+import type { PricingModel } from '@/types';
+
 export const siteConfig = {
   name: 'AI Toolstack',
   description:
     'Discover, review, compare, and learn about the best AI tools in one modern platform.',
-  url: 'http://localhost:3000'
+  url: 'http://localhost:3000',
+  keywords: ['AI tools', 'artificial intelligence', 'AI software', 'AI directory'],
+  author: {
+    name: 'AI Toolstack',
+    email: 'hello@aitoolstack.com'
+  },
+  social: {
+    twitter: '@aitoolstack',
+    github: 'https://github.com/aitoolstack'
+  }
 };
-
-export type PricingModel = 'Free' | 'Paid' | 'Freemium';
 
 export type Tool = {
   id: string;
@@ -19,6 +28,7 @@ export type Tool = {
   rating: number;
   reviews: number;
   websiteUrl: string;
+  logoUrl?: string;
 };
 
 export const categories = [
@@ -47,7 +57,7 @@ export const tools: Tool[] = [
       'PromptPilot helps product and AI teams evaluate prompt quality with versioning, side-by-side outputs, and performance benchmarks.',
     category: 'Productivity',
     features: ['Prompt testing', 'Version history', 'Team workspaces'],
-    pricing: 'Freemium',
+    pricing: 'FREEMIUM',
     rating: 4.7,
     reviews: 231,
     websiteUrl: 'https://example.com/promptpilot'
@@ -61,7 +71,7 @@ export const tools: Tool[] = [
       'VisionForge combines text-to-image, smart inpainting, and brand-safe templates for design and social teams.',
     category: 'Design',
     features: ['Image generation', 'Brand kits', 'Inpainting'],
-    pricing: 'Paid',
+    pricing: 'PAID',
     rating: 4.5,
     reviews: 158,
     websiteUrl: 'https://example.com/visionforge'
@@ -75,7 +85,7 @@ export const tools: Tool[] = [
       'CodeSage AI indexes codebases to provide contextual completions, architecture suggestions, and pull request review insights.',
     category: 'Developer Tools',
     features: ['Repo context', 'Code review', 'Refactor suggestions'],
-    pricing: 'Free',
+    pricing: 'FREE',
     rating: 4.3,
     reviews: 403,
     websiteUrl: 'https://example.com/codesage'
@@ -89,7 +99,7 @@ export const tools: Tool[] = [
       'AdCraft AI helps growth teams rapidly iterate paid ads with channel-specific templates and intent-focused messaging.',
     category: 'Marketing',
     features: ['Ad copy', 'Channel templates', 'A/B variants'],
-    pricing: 'Freemium',
+    pricing: 'FREEMIUM',
     rating: 4.4,
     reviews: 189,
     websiteUrl: 'https://example.com/adcraft'
@@ -103,7 +113,7 @@ export const tools: Tool[] = [
       'DraftFlow supports outlining, tone transformation, and collaborative drafting for newsletters, SEO pages, and blogs.',
     category: 'Writing',
     features: ['Outlines', 'Tone controls', 'Collaboration'],
-    pricing: 'Paid',
+    pricing: 'PAID',
     rating: 4.6,
     reviews: 277,
     websiteUrl: 'https://example.com/draftflow'

@@ -1,112 +1,255 @@
-import { ToolCard } from '@/components/tools/tool-card';
-import { categories, tools } from '@/lib/constants/site';
+'use client';
 
-type ToolsPageProps = {
-  searchParams?: {
-    q?: string;
-    category?: string;
-    pricing?: string;
-    minRating?: string;
-    sort?: string;
+import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { ToolCard } from '@/components/tools/tool-card';
+import { Search, Filter, Loader2 } from 'lucide-react';
+
+const pricingOptions = ['All', 'Free', 'Paid', 'Freemium'];
+const sortOptions = [
+  { value: 'rating', label: 'Top Rated' },
+  { value: 'reviews', label: 'Most Reviews' },
+  { value: 'name', label: 'Name' },
+];
+
+type Tool = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  logoUrl: string;
+  pricingModel: string;
+  rating: number;
+  reviewCount: number;
+  category: {
+    name: string;
   };
 };
 
-export default function ToolsPage({ searchParams }: ToolsPageProps) {
-  const query = searchParams?.q?.toLowerCase().trim() ?? '';
-  const category = searchParams?.category ?? 'All';
-  const pricing = searchParams?.pricing ?? 'All';
-  const minRating = Number(searchParams?.minRating ?? 0);
-  const sort = searchParams?.sort ?? 'Top Rated';
+type Category = {
+  id: string;
+  name: string;
+  slug: string;
+  icon: string;
+  toolCount: number;
+};
 
-  const filtered = tools
-    .filter((tool) => {
-      if (category !== 'All' && tool.category !== category) return false;
-      if (pricing !== 'All' && tool.pricing !== pricing) return false;
-      if (minRating && tool.rating < minRating) return false;
+export default function ToolsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  const [tools, setTools] = useState<Tool[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  const [search, setSearch] = useState(searchParams.get('q') || '');
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'All');
+  const [selectedPricing, setSelectedPricing] = useState(searchParams.get('pricing') || 'All');
+  const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'rating');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-      if (!query) return true;
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch('/api/categories');
+        const data = await res.json();
+        setCategories(data);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
-      return [tool.name, tool.description, tool.category, ...tool.features]
-        .join(' ')
-        .toLowerCase()
-        .includes(query);
-    })
-    .sort((a, b) => {
-      if (sort === 'Top Rated') return b.rating - a.rating;
-      if (sort === 'Most Reviewed') return b.reviews - a.reviews;
-      return a.name.localeCompare(b.name);
-    });
+  useEffect(() => {
+    const fetchTools = async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        params.set('page', page.toString());
+        params.set('limit', '12');
+        if (search) params.set('search', search);
+        if (selectedCategory !== 'All') params.set('category', selectedCategory);
+        if (selectedPricing !== 'All') params.set('pricing', selectedPricing);
+        params.set('sort', sortBy);
+
+        const res = await fetch(`/api/tools?${params.toString()}`);
+        const data = await res.json();
+        setTools(data.data || []);
+        setTotalPages(data.totalPages || 1);
+      } catch (error) {
+        console.error('Error fetching tools:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTools();
+  }, [search, selectedCategory, selectedPricing, sortBy, page]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPage(1);
+  };
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    setPage(1);
+  };
 
   return (
-    <section className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">Tools Directory</h1>
-        <p className="mt-2 text-brand-muted">Filter and compare modern AI tools by category, pricing, and rating.</p>
-      </div>
-
-      <form className="grid gap-4 rounded-2xl border border-white/10 bg-brand-surface p-4 md:grid-cols-2 lg:grid-cols-5">
-        <input
-          name="q"
-          defaultValue={searchParams?.q}
-          placeholder="Search..."
-          className="rounded-lg border border-white/15 bg-black/20 px-3 py-2 text-sm outline-none focus:border-brand-primary"
-        />
-
-        <select
-          name="category"
-          defaultValue={category}
-          className="rounded-lg border border-white/15 bg-black/20 px-3 py-2 text-sm outline-none focus:border-brand-primary"
-        >
-          <option>All</option>
-          {categories.map((item) => (
-            <option key={item.name} value={item.name}>
-              {item.name}
-            </option>
-          ))}
-        </select>
-
-        <select
-          name="pricing"
-          defaultValue={pricing}
-          className="rounded-lg border border-white/15 bg-black/20 px-3 py-2 text-sm outline-none focus:border-brand-primary"
-        >
-          <option>All</option>
-          <option>Free</option>
-          <option>Freemium</option>
-          <option>Paid</option>
-        </select>
-
-        <select
-          name="minRating"
-          defaultValue={String(minRating || 0)}
-          className="rounded-lg border border-white/15 bg-black/20 px-3 py-2 text-sm outline-none focus:border-brand-primary"
-        >
-          <option value="0">Any rating</option>
-          <option value="3">3★ & above</option>
-          <option value="4">4★ & above</option>
-        </select>
-
-        <div className="flex gap-2">
-          <select
-            name="sort"
-            defaultValue={sort}
-            className="w-full rounded-lg border border-white/15 bg-black/20 px-3 py-2 text-sm outline-none focus:border-brand-primary"
-          >
-            <option>Top Rated</option>
-            <option>Most Reviewed</option>
-            <option>Name</option>
-          </select>
-          <button className="rounded-lg bg-brand-primary px-4 py-2 text-sm font-medium">Apply</button>
+    <div className="space-y-8">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">AI Tools Directory</h1>
+          <p className="mt-1 text-brand-muted">Discover the best AI tools for your needs</p>
         </div>
-      </form>
-
-      <p className="text-sm text-brand-muted">Showing {filtered.length} of {tools.length} tools</p>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((tool) => (
-          <ToolCard key={tool.id} tool={tool} />
-        ))}
       </div>
-    </section>
+
+      <div className="flex flex-col gap-4 lg:flex-row">
+        {/* Filters Sidebar */}
+        <aside className="w-full space-y-6 lg:w-64 lg:flex-shrink-0">
+          <div className="rounded-2xl border border-white/10 bg-brand-surface p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Filter className="h-4 w-4" />
+              <h3 className="font-medium">Filters</h3>
+            </div>
+            
+            {/* Categories */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-brand-muted">Category</h4>
+              <div className="flex flex-wrap gap-2 lg:flex-col">
+                {['All', ...categories.map(c => c.name)].map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => handleCategoryChange(category)}
+                    className={`rounded-lg px-3 py-2 text-sm text-left transition ${
+                      selectedCategory === category
+                        ? 'bg-brand-primary text-white'
+                        : 'bg-white/5 hover:bg-white/10'
+                    }`}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Pricing */}
+            <div className="space-y-3 mt-6">
+              <h4 className="text-sm font-medium text-brand-muted">Pricing</h4>
+              <div className="flex flex-wrap gap-2">
+                {pricingOptions.map((pricing) => (
+                  <button
+                    key={pricing}
+                    onClick={() => {
+                      setSelectedPricing(pricing);
+                      setPage(1);
+                    }}
+                    className={`rounded-lg px-3 py-2 text-sm transition ${
+                      selectedPricing === pricing
+                        ? 'bg-brand-primary text-white'
+                        : 'bg-white/5 hover:bg-white/10'
+                    }`}
+                  >
+                    {pricing}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <div className="flex-1 space-y-6">
+          {/* Search and Sort */}
+          <div className="flex flex-col gap-4 sm:flex-row">
+            <form onSubmit={handleSearch} className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-muted" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search tools..."
+                  className="w-full rounded-xl border border-white/10 bg-brand-surface py-2.5 pl-10 pr-4 text-sm outline-none focus:border-brand-primary"
+                />
+              </div>
+            </form>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="rounded-xl border border-white/10 bg-brand-surface px-4 py-2.5 text-sm outline-none focus:border-brand-primary"
+            >
+              {sortOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Results Count */}
+          <p className="text-sm text-brand-muted">
+            Showing {tools.length} tools
+          </p>
+
+          {/* Tools Grid */}
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
+            </div>
+          ) : tools.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {tools.map((tool) => (
+                <ToolCard
+                  key={tool.id}
+                  tool={{
+                    id: tool.id,
+                    name: tool.name,
+                    slug: tool.slug,
+                    description: tool.description,
+                    longDescription: tool.description,
+                    category: tool.category.name,
+                    features: [],
+                    pricing: (tool.pricingModel.charAt(0) + tool.pricingModel.slice(1).toLowerCase()) as 'Free' | 'Paid' | 'Freemium',
+                    rating: tool.rating,
+                    reviews: tool.reviewCount,
+                    websiteUrl: '#'
+                  }}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-white/10 bg-brand-surface p-12 text-center">
+              <p className="text-brand-muted">No tools found matching your criteria.</p>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="rounded-lg border border-white/10 bg-brand-surface px-4 py-2 text-sm disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <span className="text-sm text-brand-muted">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="rounded-lg border border-white/10 bg-brand-surface px-4 py-2 text-sm disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
