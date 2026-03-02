@@ -45,7 +45,11 @@ export default function LoginPage() {
       return;
     }
 
-    router.push('/dashboard');
+    const { data: { user } } = await supabase.auth.getUser();
+    const userRole = user?.user_metadata?.role;
+    const isAdmin = typeof userRole === 'string' && userRole.toUpperCase() === 'ADMIN';
+
+    router.push(isAdmin ? '/admin' : '/dashboard');
     router.refresh();
   };
 

@@ -50,7 +50,12 @@ export default function SignupPage() {
     });
 
     if (signUpError) {
-      setError(signUpError.message);
+      const errorMessage = signUpError.message.toLowerCase();
+      if (errorMessage.includes('rate limit') || errorMessage.includes('too many requests')) {
+        setError('Too many signup attempts. Please wait 60 seconds and try again.');
+      } else {
+        setError(signUpError.message);
+      }
       setLoading(false);
       return;
     }

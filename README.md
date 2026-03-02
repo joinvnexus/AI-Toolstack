@@ -22,6 +22,27 @@ npm run dev
 
 Then open `http://localhost:3000`.
 
+## Prisma setup (Supabase)
+
+`npx prisma studio` only opens a UI. It does not create tables.
+
+1. Set `DATABASE_URL` (pooler `:6543`) and `DIRECT_URL` (session pooler `:5432`) in `.env.local`.
+2. Create/update tables:
+
+```bash
+npx prisma db push
+npx prisma generate
+npx prisma studio
+```
+
+If you want SQL migration files, run:
+
+```bash
+npx prisma migrate dev --name init
+```
+
+For remote Supabase DBs, `migrate dev` can require `SHADOW_DATABASE_URL`.
+
 ## Scripts
 
 ```bash

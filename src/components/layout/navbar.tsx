@@ -63,7 +63,7 @@ export function Navbar() {
       ]
     : [];
 
-  const isAdmin = user?.user_metadata?.role === 'admin' || user?.role === 'ADMIN';
+  const isAdmin = user?.user_metadata?.role?.toUpperCase?.() === 'ADMIN';
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-brand-background/80 backdrop-blur-xl">
