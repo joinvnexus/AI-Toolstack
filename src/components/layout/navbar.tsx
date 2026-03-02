@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
-import { Menu, X, Search, User, LogOut, Settings, Bookmark, LayoutDashboard } from 'lucide-react';
+import { Menu, X, Search, LogOut, Settings, Bookmark, LayoutDashboard, Wrench, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const navLinks = [
@@ -13,10 +14,21 @@ const navLinks = [
   { href: '/blog', label: 'Blog' },
 ];
 
+type AppRole = 'USER' | 'ADMIN';
+
+const resolveUserRole = (authUser: SupabaseUser | null): AppRole => {
+  if (!authUser) return 'USER';
+
+  const metadataRole = authUser.user_metadata?.role ?? authUser.app_metadata?.role;
+  if (typeof metadataRole !== 'string') return 'USER';
+
+  return metadataRole.toUpperCase() === 'ADMIN' ? 'ADMIN' : 'USER';
+};
+
 export function Navbar() {
   const router = useRouter();
   const supabase = createClient();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -36,6 +48,17 @@ export function Navbar() {
     };
 
     checkUser();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [supabase]);
 
   const handleSignOut = async () => {
@@ -55,15 +78,27 @@ export function Navbar() {
     }
   };
 
+  const role = resolveUserRole(user);
+  const isAdmin = role === 'ADMIN';
+
   const userLinks = user
     ? [
-        { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { href: '/dashboard', label: 'User Dashboard', icon: LayoutDashboard },
         { href: '/dashboard?tab=bookmarks', label: 'Bookmarks', icon: Bookmark },
         { href: '/dashboard?tab=settings', label: 'Settings', icon: Settings },
       ]
     : [];
 
-  const isAdmin = user?.user_metadata?.role?.toUpperCase?.() === 'ADMIN';
+  const adminLinks = user
+    ? [
+        { href: '/admin', label: 'Admin Dashboard', icon: LayoutDashboard },
+        { href: '/admin/tools', label: 'Manage Tools', icon: Wrench },
+        { href: '/admin/posts', label: 'Manage Posts', icon: FileText },
+        { href: '/admin/settings', label: 'Admin Settings', icon: Settings },
+      ]
+    : [];
+
+  const dropdownLinks = isAdmin ? adminLinks : userLinks;
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-brand-background/80 backdrop-blur-xl">
@@ -122,10 +157,11 @@ export function Navbar() {
                     >
                       <div className="border-b border-white/10 px-4 py-2">
                         <p className="truncate text-sm font-medium">{user.email}</p>
+                        <p className="text-xs text-brand-muted">{isAdmin ? 'ADMIN' : 'USER'}</p>
                       </div>
-                      {userLinks.map((link) => (
+                      {dropdownLinks.map((link) => (
                         <Link
-                          key={link.href}
+                          key={`${link.href}-${link.label}`}
                           href={link.href}
                           onClick={() => setUserMenuOpen(false)}
                           className="flex items-center gap-2 px-4 py-2 text-sm text-brand-muted hover:bg-white/5 hover:text-white"
@@ -134,19 +170,9 @@ export function Navbar() {
                           {link.label}
                         </Link>
                       ))}
-                      {isAdmin && (
-                        <Link
-                          href="/admin"
-                          onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-2 border-t border-white/10 px-4 py-2 text-sm text-brand-muted hover:bg-white/5 hover:text-white"
-                        >
-                          <Settings className="h-4 w-4" />
-                          Admin Panel
-                        </Link>
-                      )}
                       <button
                         onClick={handleSignOut}
-                        className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-white/5"
+                        className="mt-1 flex w-full items-center gap-2 border-t border-white/10 px-4 py-2 text-sm text-red-400 hover:bg-white/5"
                       >
                         <LogOut className="h-4 w-4" />
                         Sign Out
@@ -232,9 +258,12 @@ export function Navbar() {
               ))}
               {user ? (
                 <>
-                  {userLinks.map((link) => (
+                  <p className="px-4 py-1 text-xs text-brand-muted">
+                    {isAdmin ? 'ADMIN MENU' : 'USER MENU'}
+                  </p>
+                  {dropdownLinks.map((link) => (
                     <Link
-                      key={link.href}
+                      key={`${link.href}-${link.label}`}
                       href={link.href}
                       onClick={() => setMobileMenuOpen(false)}
                       className="block rounded-lg px-4 py-2 text-brand-muted hover:bg-white/5 hover:text-white"

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Bookmark, Star, Settings, LogOut } from 'lucide-react';
 
 type UserProfile = {
@@ -28,13 +28,21 @@ type BookmarkWithTool = {
   };
 };
 
+type DashboardTab = 'bookmarks' | 'reviews' | 'settings';
+
+const VALID_TABS: DashboardTab[] = ['bookmarks', 'reviews', 'settings'];
+
+const getTabFromQuery = (tab: string | null): DashboardTab =>
+  VALID_TABS.includes(tab as DashboardTab) ? (tab as DashboardTab) : 'bookmarks';
+
 export default function DashboardPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [bookmarks, setBookmarks] = useState<BookmarkWithTool[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('bookmarks');
+  const [activeTab, setActiveTab] = useState<DashboardTab>('bookmarks');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -69,6 +77,10 @@ export default function DashboardPage() {
     fetchData();
   }, [supabase, router]);
 
+  useEffect(() => {
+    setActiveTab(getTabFromQuery(searchParams.get('tab')));
+  }, [searchParams]);
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     router.push('/login');
@@ -86,11 +98,16 @@ export default function DashboardPage() {
     return null;
   }
 
-  const tabs = [
+  const tabs: { id: DashboardTab; label: string; icon: typeof Bookmark }[] = [
     { id: 'bookmarks', label: 'Bookmarks', icon: Bookmark },
     { id: 'reviews', label: 'My Reviews', icon: Star },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
+
+  const handleTabChange = (tabId: DashboardTab) => {
+    setActiveTab(tabId);
+    router.push(`/dashboard?tab=${tabId}`);
+  };
 
   return (
     <div className="space-y-8">
@@ -120,7 +137,7 @@ export default function DashboardPage() {
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabChange(tab.id)}
               className={`flex items-center gap-2 border-b-2 py-3 text-sm font-medium transition ${
                 activeTab === tab.id
                   ? 'border-brand-primary text-white'
