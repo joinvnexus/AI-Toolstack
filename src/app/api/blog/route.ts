@@ -1,8 +1,16 @@
 import { NextResponse } from 'next/server';
-import { Prisma } from '@prisma/client';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
+
+const getPrismaErrorCode = (error: unknown): string | null => {
+  if (typeof error !== 'object' || error === null || !('code' in error)) {
+    return null;
+  }
+
+  const errorCode = (error as { code?: unknown }).code;
+  return typeof errorCode === 'string' ? errorCode : null;
+};
 
 export async function GET(request: Request) {
   try {
@@ -170,20 +178,19 @@ export async function POST(request: Request) {
 
     return NextResponse.json(post, { status: 201 });
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === 'P2002') {
-        return NextResponse.json(
-          { error: 'A post with the same slug already exists' },
-          { status: 409 }
-        );
-      }
+    const errorCode = getPrismaErrorCode(error);
+    if (errorCode === 'P2002') {
+      return NextResponse.json(
+        { error: 'A post with the same slug already exists' },
+        { status: 409 }
+      );
+    }
 
-      if (error.code === 'P2025') {
-        return NextResponse.json(
-          { error: 'One or more selected categories do not exist' },
-          { status: 400 }
-        );
-      }
+    if (errorCode === 'P2025') {
+      return NextResponse.json(
+        { error: 'One or more selected categories do not exist' },
+        { status: 400 }
+      );
     }
 
     console.error('Error creating blog post:', error);
