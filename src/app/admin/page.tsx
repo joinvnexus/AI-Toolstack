@@ -70,13 +70,23 @@ export default function AdminPage() {
         }
 
         // Fetch stats
-        // In a real app, you'd have an API endpoint for this
-        setStats({
-          totalTools: 0,
-          totalUsers: 0,
-          totalReviews: 0,
-          totalPosts: 0,
-        });
+        const statsRes = await fetch('/api/admin/stats');
+        if (statsRes.ok) {
+          const statsData = await statsRes.json();
+          setStats({
+            totalTools: statsData.totalTools || 0,
+            totalUsers: statsData.totalUsers || 0,
+            totalReviews: statsData.totalReviews || 0,
+            totalPosts: statsData.totalPosts || 0,
+          });
+        } else {
+          setStats({
+            totalTools: 0,
+            totalUsers: 0,
+            totalReviews: 0,
+            totalPosts: 0,
+          });
+        }
       } catch (error) {
         console.error('Error checking admin:', error);
         router.push('/dashboard');
