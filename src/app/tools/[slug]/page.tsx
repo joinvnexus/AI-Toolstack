@@ -38,14 +38,27 @@ type Tool = {
   }>;
 };
 
+type SimilarTool = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  pricingModel: string;
+  rating: number;
+  reviewCount: number;
+};
+
 export default function ToolDetailsPage() {
   const params = useParams();
+  const slugParam = params.slug;
+  const slug = Array.isArray(slugParam) ? slugParam[0] : slugParam;
   const supabase = createClient();
   const [tool, setTool] = useState<Tool | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [similarTools, setSimilarTools] = useState<SimilarTool[]>([]);
   const [bookmarkError, setBookmarkError] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
   
@@ -59,7 +72,7 @@ export default function ToolDetailsPage() {
       try {
         const [{ data: authData }, toolRes] = await Promise.all([
           supabase.auth.getUser(),
-          fetch(`/api/tools/${params.slug}`),
+          fetch(`/api/tools/${slug}`),
         ]);
 
         setUser(authData.user ?? null);
@@ -75,10 +88,42 @@ export default function ToolDetailsPage() {
       }
     };
 
-    if (params.slug) {
+    if (slug) {
       fetchInitialData();
     }
-  }, [params.slug, supabase]);
+  }, [slug, supabase]);
+
+  useEffect(() => {
+    const fetchSimilarTools = async () => {
+      if (!tool?.category?.slug) {
+        setSimilarTools([]);
+        return;
+      }
+
+      try {
+        const res = await fetch(
+          `/api/tools?category=${encodeURIComponent(tool.category.slug)}&limit=6&sort=rating`
+        );
+
+        if (!res.ok) {
+          setSimilarTools([]);
+          return;
+        }
+
+        const data = await res.json();
+        const related = (Array.isArray(data.data) ? data.data : [])
+          .filter((item: SimilarTool) => item.slug !== tool.slug)
+          .slice(0, 4);
+
+        setSimilarTools(related);
+      } catch (error) {
+        console.error('Error fetching similar tools:', error);
+        setSimilarTools([]);
+      }
+    };
+
+    fetchSimilarTools();
+  }, [tool?.category?.slug, tool?.slug]);
 
   useEffect(() => {
     const checkBookmarkStatus = async () => {
@@ -150,6 +195,11 @@ export default function ToolDetailsPage() {
       return;
     }
 
+    if (!slug) {
+      setReviewError('Tool identifier is missing');
+      return;
+    }
+
     if (!reviewContent.trim()) {
       setReviewError('Please write a review');
       return;
@@ -159,7 +209,7 @@ export default function ToolDetailsPage() {
     setReviewError('');
 
     try {
-      const res = await fetch(`/api/tools/${params.slug}/reviews`, {
+      const res = await fetch(`/api/tools/${slug}/reviews`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -170,7 +220,7 @@ export default function ToolDetailsPage() {
 
       if (res.ok) {
         // Refresh tool data
-        const toolRes = await fetch(`/api/tools/${params.slug}`);
+        const toolRes = await fetch(`/api/tools/${slug}`);
         if (toolRes.ok) {
           const data = await toolRes.json();
           setTool(data);
@@ -221,7 +271,7 @@ export default function ToolDetailsPage() {
   const tabs = [
     { id: 'overview', label: 'Overview' },
     { id: 'reviews', label: `Reviews (${tool.reviewCount})` },
-    { id: 'alternatives', label: 'Alternatives' },
+    { id: 'alternatives', label: 'Similar Tools' },
   ];
 
   const primaryUrl = tool.affiliateUrl || tool.websiteUrl;
@@ -504,7 +554,28 @@ export default function ToolDetailsPage() {
       {activeTab === 'alternatives' && (
         <div className="rounded-2xl border border-white/10 bg-brand-surface p-6">
           <h2 className="text-xl font-semibold">Similar Tools</h2>
-          <p className="mt-4 text-brand-muted">Coming soon...</p>
+          {similarTools.length > 0 ? (
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              {similarTools.map((similarTool) => (
+                <Link
+                  key={similarTool.id}
+                  href={`/tools/${similarTool.slug}`}
+                  className="rounded-xl border border-white/10 bg-white/5 p-4 transition hover:border-brand-primary/60"
+                >
+                  <h3 className="font-medium">{similarTool.name}</h3>
+                  <p className="mt-2 line-clamp-2 text-sm text-brand-muted">{similarTool.description}</p>
+                  <div className="mt-3 flex items-center justify-between text-xs text-brand-muted">
+                    <span>{formatPricing(similarTool.pricingModel)}</span>
+                    <span>
+                      {similarTool.rating.toFixed(1)} ({similarTool.reviewCount})
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-4 text-brand-muted">No similar tools found yet.</p>
+          )}
         </div>
       )}
     </div>
