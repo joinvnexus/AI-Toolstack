@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
-import { Menu, X, Search, LogOut, Settings, Bookmark, LayoutDashboard, Wrench, FileText } from 'lucide-react';
+import { Menu, X, Search, LogOut, Settings, Bookmark, LayoutDashboard, Wrench, FileText, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const navLinks = [
@@ -92,6 +92,7 @@ export function Navbar() {
   const adminLinks = user
     ? [
         { href: '/admin', label: 'Admin Dashboard', icon: LayoutDashboard },
+        { href: '/admin/users', label: 'Manage Users', icon: Users },
         { href: '/admin/tools', label: 'Manage Tools', icon: Wrench },
         { href: '/admin/posts', label: 'Manage Posts', icon: FileText },
         { href: '/admin/settings', label: 'Admin Settings', icon: Settings },
