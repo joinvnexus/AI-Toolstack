@@ -1,60 +1,67 @@
 # AI Toolstack
 
-A modern full-stack starter for an AI Tools Directory and Blogging Platform built with Next.js 14, TypeScript, Tailwind CSS, Prisma, and App Router.
+AI Toolstack is a full-stack AI tools directory and blog platform built with Next.js, Supabase, and Prisma.
 
-## Included in this implementation
+## Tech Stack
 
-- Marketing homepage with hero search, category cards, featured tools, and stats
-- Tools directory with URL-driven filter/search/sort controls
-- Tool details with quick facts, alternatives, and action sidebar
-- Blog listing and post layout with a table of contents sidebar
-- Auth, dashboard, and admin route placeholders
-- API endpoints for tools and blog
-- Prisma schema aligned with directory + review + blog workflows
-- Tailwind brand palette and reusable layout/components
+- Next.js 14 (App Router)
+- TypeScript
+- Tailwind CSS
+- Supabase Auth
+- Prisma + PostgreSQL
 
-## Quickstart
+## Main Features
+
+- Public pages:
+  - Homepage
+  - Tools directory
+  - Tool details (reviews, bookmarks, similar tools)
+  - Blog list and blog details
+  - Global search page
+- Authentication:
+  - Email/password login and signup
+  - Google and Facebook OAuth
+  - Forgot/reset password flow
+- User dashboard:
+  - Bookmarks
+  - Reviews
+  - Settings
+- Admin panel:
+  - Tools, categories, blog posts, users, reviews
+  - Admin stats and role management
+
+## Quick Start
 
 ```bash
 npm install
+npm run db:migrate
 npm run dev
 ```
 
-Then open `http://localhost:3000`.
+Open `http://localhost:3000`.
 
-## Prisma setup (Supabase)
-
-`npx prisma studio` only opens a UI. It does not create tables.
-
-1. Set `DATABASE_URL` (pooler `:6543`) and `DIRECT_URL` (session pooler `:5432`) in `.env.local`.
-2. Create/update tables:
+## Build
 
 ```bash
-npx prisma db push
-npx prisma generate
-npx prisma studio
-```
-
-If you want SQL migration files, run:
-
-```bash
-npx prisma migrate dev --name init
-```
-
-For remote Supabase DBs, `migrate dev` can require `SHADOW_DATABASE_URL`.
-
-## Scripts
-
-```bash
-npm run dev
 npm run build
 ```
 
-## Next implementation phases
+Build command already includes Prisma client generation:
 
-1. Wire Supabase Auth and protected route middleware.
-2. Replace mock constants with Prisma + Supabase storage-backed data.
-3. Add React Query + API-backed pagination and infinite loading.
-4. Build review submission, helpful votes, and moderation.
-5. Add rich text editor + admin CRUD workflows.
-6. Add SEO metadata generators, sitemap, analytics, and Sentry.
+- `prisma generate && next build`
+
+## Environment Variables
+
+Use values from `.env.example`. Required keys:
+
+- `NEXT_PUBLIC_APP_URL`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `DATABASE_URL`
+- `DIRECT_URL`
+
+## Project Docs
+
+- Setup guide: [PROJECT_SETUP.md](./PROJECT_SETUP.md)
+- Project status and completed checklist: [TODO.md](./TODO.md)
