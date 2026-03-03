@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
 import { ExternalLink, Star, MapPin, DollarSign, Loader2, Bookmark, Share2, Send } from 'lucide-react';
 
@@ -42,8 +43,9 @@ export default function ToolDetailsPage() {
   const [tool, setTool] = useState<Tool | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [bookmarkError, setBookmarkError] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
   
   // Review form state
@@ -52,37 +54,28 @@ export default function ToolDetailsPage() {
   const [reviewError, setReviewError] = useState('');
 
   useEffect(() => {
-    const fetchTool = async () => {
+    const fetchInitialData = async () => {
       try {
-        const res = await fetch(`/api/tools/${params.slug}`);
-        if (res.ok) {
-          const data = await res.json();
-          setTool(data);
+        const [{ data: authData }, toolRes] = await Promise.all([
+          supabase.auth.getUser(),
+          fetch(`/api/tools/${params.slug}`),
+        ]);
+
+        setUser(authData.user ?? null);
+
+        if (toolRes.ok) {
+          const toolData = await toolRes.json();
+          setTool(toolData);
         }
       } catch (error) {
-        console.error('Error fetching tool:', error);
+        console.error('Error loading tool details:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      
-      // Check if bookmarked
-      if (user && tool) {
-        const res = await fetch('/api/user/bookmarks');
-        if (res.ok) {
-          const bookmarks = await res.json();
-          const bookmarked = bookmarks.some((b: any) => b.tool.id === tool.id);
-          setIsBookmarked(bookmarked);
-        }
-      }
-    };
-
     if (params.slug) {
-      fetchTool();
+      fetchInitialData();
     }
   }, [params.slug, supabase]);
 
@@ -95,33 +88,57 @@ export default function ToolDetailsPage() {
           const bookmarked = bookmarks.some((b: any) => b.tool.id === tool.id);
           setIsBookmarked(bookmarked);
         }
+      } else {
+        setIsBookmarked(false);
       }
     };
+
     checkBookmarkStatus();
   }, [user, tool]);
 
   const handleBookmark = async () => {
+    setBookmarkError('');
+
     if (!user) {
       window.location.href = '/login';
       return;
     }
 
+    if (!tool) {
+      return;
+    }
+
     try {
       if (isBookmarked) {
-        await fetch(`/api/user/bookmarks?toolId=${tool?.id}`, {
+        const res = await fetch(`/api/user/bookmarks?toolId=${tool.id}`, {
           method: 'DELETE',
         });
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          setBookmarkError(errorData.error || 'Failed to remove bookmark');
+          return;
+        }
+
         setIsBookmarked(false);
       } else {
-        await fetch('/api/user/bookmarks', {
+        const res = await fetch('/api/user/bookmarks', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ toolId: tool?.id }),
+          body: JSON.stringify({ toolId: tool.id }),
         });
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          setBookmarkError(errorData.error || 'Failed to bookmark tool');
+          return;
+        }
+
         setIsBookmarked(true);
       }
     } catch (error) {
       console.error('Error toggling bookmark:', error);
+      setBookmarkError('Failed to bookmark tool');
     }
   };
 
@@ -245,6 +262,10 @@ export default function ToolDetailsPage() {
                 </button>
               </div>
             </div>
+
+            {bookmarkError && (
+              <p className="mt-3 text-sm text-red-400">{bookmarkError}</p>
+            )}
 
             <div className="mt-6 flex flex-wrap gap-4">
               <div className="flex items-center gap-2 text-sm">

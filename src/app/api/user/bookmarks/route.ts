@@ -3,6 +3,32 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 
+const resolveRole = (role: unknown): 'USER' | 'ADMIN' =>
+  typeof role === 'string' && role.toUpperCase() === 'ADMIN' ? 'ADMIN' : 'USER';
+
+const ensurePrismaUser = async (user: {
+  id: string;
+  email?: string | null;
+  user_metadata?: { name?: string; avatar_url?: string; role?: string };
+}) => {
+  await prisma.user.upsert({
+    where: { id: user.id },
+    create: {
+      id: user.id,
+      email: user.email || `${user.id}@local.invalid`,
+      name: user.user_metadata?.name || null,
+      avatarUrl: user.user_metadata?.avatar_url || null,
+      role: resolveRole(user.user_metadata?.role),
+    },
+    update: {
+      email: user.email || `${user.id}@local.invalid`,
+      name: user.user_metadata?.name || null,
+      avatarUrl: user.user_metadata?.avatar_url || null,
+      role: resolveRole(user.user_metadata?.role),
+    },
+  });
+};
+
 export async function GET() {
   try {
     const cookieStore = await cookies();
@@ -76,6 +102,8 @@ export async function POST(request: Request) {
         { status: 401 }
       );
     }
+
+    await ensurePrismaUser(user);
 
     const body = await request.json();
     const { toolId } = body;

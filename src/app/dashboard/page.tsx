@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Bookmark, Star, Settings, LogOut } from 'lucide-react';
@@ -28,6 +29,22 @@ type BookmarkWithTool = {
   };
 };
 
+type UserReview = {
+  id: string;
+  rating: number;
+  content: string;
+  helpfulCount: number;
+  createdAt: string;
+  tool: {
+    id: string;
+    name: string;
+    slug: string;
+    category: {
+      name: string;
+    };
+  };
+};
+
 type DashboardTab = 'bookmarks' | 'reviews' | 'settings';
 
 const VALID_TABS: DashboardTab[] = ['bookmarks', 'reviews', 'settings'];
@@ -39,36 +56,48 @@ export default function DashboardPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
+
   const [user, setUser] = useState<UserProfile | null>(null);
   const [bookmarks, setBookmarks] = useState<BookmarkWithTool[]>([]);
+  const [reviews, setReviews] = useState<UserReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<DashboardTab>('bookmarks');
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
+        const {
+          data: { user: authUser },
+        } = await supabase.auth.getUser();
+
+        if (!authUser) {
           router.push('/login');
           return;
         }
 
         setUser({
-          id: user.id,
-          email: user.email || '',
-          name: user.user_metadata?.name || null,
-          avatarUrl: user.user_metadata?.avatar_url || null,
+          id: authUser.id,
+          email: authUser.email || '',
+          name: authUser.user_metadata?.name || null,
+          avatarUrl: authUser.user_metadata?.avatar_url || null,
         });
 
-        // Fetch bookmarks
-        const res = await fetch('/api/user/bookmarks');
-        if (res.ok) {
-          const data = await res.json();
-          setBookmarks(data);
+        const [bookmarksRes, reviewsRes] = await Promise.all([
+          fetch('/api/user/bookmarks'),
+          fetch('/api/user/reviews'),
+        ]);
+
+        if (bookmarksRes.ok) {
+          const bookmarksData = await bookmarksRes.json();
+          setBookmarks(bookmarksData);
+        }
+
+        if (reviewsRes.ok) {
+          const reviewsData = await reviewsRes.json();
+          setReviews(reviewsData);
         }
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error fetching dashboard data:', error);
       } finally {
         setLoading(false);
       }
@@ -86,6 +115,11 @@ export default function DashboardPage() {
     router.push('/login');
   };
 
+  const handleTabChange = (tabId: DashboardTab) => {
+    setActiveTab(tabId);
+    router.push(`/dashboard?tab=${tabId}`);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -94,24 +128,16 @@ export default function DashboardPage() {
     );
   }
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   const tabs: { id: DashboardTab; label: string; icon: typeof Bookmark }[] = [
-    { id: 'bookmarks', label: 'Bookmarks', icon: Bookmark },
-    { id: 'reviews', label: 'My Reviews', icon: Star },
+    { id: 'bookmarks', label: `Bookmarks (${bookmarks.length})`, icon: Bookmark },
+    { id: 'reviews', label: `My Reviews (${reviews.length})`, icon: Star },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
-  const handleTabChange = (tabId: DashboardTab) => {
-    setActiveTab(tabId);
-    router.push(`/dashboard?tab=${tabId}`);
-  };
-
   return (
     <div className="space-y-8">
-      {/* Profile Header */}
       <div className="rounded-2xl border border-white/10 bg-brand-surface p-6">
         <div className="flex items-center gap-4">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-primary">
@@ -131,7 +157,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="border-b border-white/10">
         <div className="flex gap-6">
           {tabs.map((tab) => (
@@ -151,54 +176,92 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Tab Content */}
       {activeTab === 'bookmarks' && (
         <div>
           <h2 className="mb-4 text-lg font-semibold">Saved Tools</h2>
           {bookmarks.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {bookmarks.map((bookmark) => (
-                <a
+                <Link
                   key={bookmark.id}
                   href={`/tools/${bookmark.tool.slug}`}
                   className="rounded-2xl border border-white/10 bg-brand-surface p-5 transition hover:border-brand-primary/60"
                 >
                   <h3 className="font-medium">{bookmark.tool.name}</h3>
-                  <p className="mt-1 text-sm text-brand-muted line-clamp-2">
-                    {bookmark.tool.description}
-                  </p>
+                  <p className="mt-1 line-clamp-2 text-sm text-brand-muted">{bookmark.tool.description}</p>
                   <div className="mt-3 flex items-center justify-between text-sm">
                     <span className="text-brand-muted">{bookmark.tool.category.name}</span>
-                    <span>⭐ {bookmark.tool.rating.toFixed(1)}</span>
+                    <span className="flex items-center gap-1">
+                      <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                      {bookmark.tool.rating.toFixed(1)}
+                    </span>
                   </div>
-                </a>
+                </Link>
               ))}
             </div>
           ) : (
             <div className="rounded-2xl border border-white/10 bg-brand-surface p-8 text-center">
               <Bookmark className="mx-auto h-8 w-8 text-brand-muted" />
               <p className="mt-4 text-brand-muted">No bookmarks yet. Start saving your favorite tools!</p>
-              <a href="/tools" className="mt-4 inline-block text-brand-primary hover:underline">
+              <Link href="/tools" className="mt-4 inline-block text-brand-primary hover:underline">
                 Browse tools
-              </a>
+              </Link>
             </div>
           )}
         </div>
       )}
 
       {activeTab === 'reviews' && (
-        <div className="rounded-2xl border border-white/10 bg-brand-surface p-8 text-center">
-          <Star className="mx-auto h-8 w-8 text-brand-muted" />
-          <p className="mt-4 text-brand-muted">You have not written any reviews yet.</p>
+        <div>
+          <h2 className="mb-4 text-lg font-semibold">Your Reviews</h2>
+          {reviews.length > 0 ? (
+            <div className="space-y-4">
+              {reviews.map((review) => (
+                <div key={review.id} className="rounded-2xl border border-white/10 bg-brand-surface p-5">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <Link href={`/tools/${review.tool.slug}`} className="font-medium hover:text-brand-primary">
+                      {review.tool.name}
+                    </Link>
+                    <span className="text-sm text-brand-muted">
+                      {new Date(review.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+
+                  <p className="mt-1 text-sm text-brand-muted">{review.tool.category.name}</p>
+
+                  <div className="mt-3 flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={`h-4 w-4 ${
+                          star <= review.rating ? 'fill-yellow-500 text-yellow-500' : 'text-gray-600'
+                        }`}
+                      />
+                    ))}
+                  </div>
+
+                  <p className="mt-3 text-sm text-brand-muted">{review.content}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-white/10 bg-brand-surface p-8 text-center">
+              <Star className="mx-auto h-8 w-8 text-brand-muted" />
+              <p className="mt-4 text-brand-muted">You have not written any reviews yet.</p>
+              <Link href="/tools" className="mt-4 inline-block text-brand-primary hover:underline">
+                Find tools to review
+              </Link>
+            </div>
+          )}
         </div>
       )}
 
       {activeTab === 'settings' && (
         <div className="rounded-2xl border border-white/10 bg-brand-surface p-6">
           <h2 className="mb-4 text-lg font-semibold">Account Settings</h2>
-          <form className="space-y-4 max-w-md">
+          <form className="max-w-md space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Name</label>
+              <label className="mb-2 block text-sm font-medium">Name</label>
               <input
                 type="text"
                 defaultValue={user.name || ''}
@@ -206,12 +269,12 @@ export default function DashboardPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Email</label>
+              <label className="mb-2 block text-sm font-medium">Email</label>
               <input
                 type="email"
                 defaultValue={user.email}
                 disabled
-                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none opacity-50"
+                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm opacity-50 outline-none"
               />
             </div>
             <button

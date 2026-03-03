@@ -3,6 +3,32 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 
+const resolveRole = (role: unknown): 'USER' | 'ADMIN' =>
+  typeof role === 'string' && role.toUpperCase() === 'ADMIN' ? 'ADMIN' : 'USER';
+
+const ensurePrismaUser = async (user: {
+  id: string;
+  email?: string | null;
+  user_metadata?: { name?: string; avatar_url?: string; role?: string };
+}) => {
+  await prisma.user.upsert({
+    where: { id: user.id },
+    create: {
+      id: user.id,
+      email: user.email || `${user.id}@local.invalid`,
+      name: user.user_metadata?.name || null,
+      avatarUrl: user.user_metadata?.avatar_url || null,
+      role: resolveRole(user.user_metadata?.role),
+    },
+    update: {
+      email: user.email || `${user.id}@local.invalid`,
+      name: user.user_metadata?.name || null,
+      avatarUrl: user.user_metadata?.avatar_url || null,
+      role: resolveRole(user.user_metadata?.role),
+    },
+  });
+};
+
 export async function GET(
   request: Request,
   { params }: { params: { slug: string } }
@@ -102,6 +128,8 @@ export async function POST(
       );
     }
 
+    await ensurePrismaUser(user);
+
     const tool = await prisma.tool.findUnique({
       where: { slug: params.slug },
     });
@@ -133,10 +161,25 @@ export async function POST(
     const body = await request.json();
     const { rating, content } = body;
 
+    const normalizedRating = Number(rating);
+    if (!Number.isFinite(normalizedRating) || normalizedRating < 1 || normalizedRating > 5) {
+      return NextResponse.json(
+        { error: 'Rating must be between 1 and 5' },
+        { status: 400 }
+      );
+    }
+
+    if (!content || !String(content).trim()) {
+      return NextResponse.json(
+        { error: 'Review content is required' },
+        { status: 400 }
+      );
+    }
+
     const review = await prisma.review.create({
       data: {
-        rating,
-        content,
+        rating: normalizedRating,
+        content: String(content).trim(),
         userId: user.id,
         toolId: tool.id,
       },
@@ -151,19 +194,18 @@ export async function POST(
       },
     });
 
-    // Update tool's rating and review count
-    const reviews = await prisma.review.findMany({
+    // Update tool rating after insert
+    const aggregate = await prisma.review.aggregate({
       where: { toolId: tool.id },
+      _avg: { rating: true },
+      _count: { id: true },
     });
-    
-    const totalRating = reviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0);
-    const averageRating = totalRating / reviews.length;
 
     await prisma.tool.update({
       where: { id: tool.id },
       data: {
-        rating: averageRating,
-        reviewCount: { increment: 1 },
+        rating: aggregate._avg.rating ?? 0,
+        reviewCount: aggregate._count.id,
       },
     });
 
