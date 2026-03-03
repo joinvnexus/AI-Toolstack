@@ -1,10 +1,124 @@
 import Link from 'next/link';
 import { ToolCard } from '@/components/tools/tool-card';
 import { BlogCard } from '@/components/blog/blog-card';
-import { blogPosts, categories, stats, tools } from '@/lib/constants/site';
 import { PageTransition, FadeIn, StaggerContainer, StaggerItem } from '@/components/layout/page-transition';
+import { unstable_noStore as noStore } from 'next/cache';
+import prisma from '@/lib/prisma';
 
-export default function HomePage() {
+const categoryIcons: Record<string, string> = {
+  productivity: '⚡',
+  'developer-tools': '💻',
+  design: '🎨',
+  marketing: '📈',
+  writing: '✍️',
+  video: '🎬',
+};
+
+const formatNumber = (value: number) => new Intl.NumberFormat('en-US').format(value);
+
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  }).format(date);
+
+const getExcerpt = (excerpt: string | null, content: string) => {
+  if (excerpt?.trim()) return excerpt.trim();
+  const plainText = content.replace(/\s+/g, ' ').trim();
+  if (plainText.length <= 140) return plainText;
+  return `${plainText.slice(0, 137)}...`;
+};
+
+export default async function HomePage() {
+  noStore();
+
+  const [
+    categoryRows,
+    toolRows,
+    postRows,
+    totalTools,
+    totalUsers,
+    totalReviews,
+    totalPosts,
+  ] = await Promise.all([
+    prisma.category.findMany({
+      orderBy: [{ toolCount: 'desc' }, { name: 'asc' }],
+      take: 6,
+      select: {
+        name: true,
+        slug: true,
+        icon: true,
+        toolCount: true,
+      },
+    }),
+    prisma.tool.findMany({
+      take: 3,
+      orderBy: [{ rating: 'desc' }, { reviewCount: 'desc' }],
+      include: {
+        category: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    }),
+    prisma.blogPost.findMany({
+      where: { published: true },
+      take: 2,
+      orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }],
+      include: {
+        categories: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    }),
+    prisma.tool.count(),
+    prisma.user.count(),
+    prisma.review.count(),
+    prisma.blogPost.count({ where: { published: true } }),
+  ]);
+
+  const categories = categoryRows.map((category) => ({
+    name: category.name,
+    slug: category.slug,
+    icon: category.icon || categoryIcons[category.slug] || '•',
+    toolCount: category.toolCount,
+  }));
+
+  const tools = toolRows.map((tool) => ({
+    id: tool.id,
+    name: tool.name,
+    slug: tool.slug,
+    description: tool.description,
+    longDescription: tool.longDescription,
+    category: tool.category?.name || 'Uncategorized',
+    features: [],
+    pricing: tool.pricingModel,
+    rating: tool.rating,
+    reviews: tool.reviewCount,
+    websiteUrl: tool.websiteUrl,
+    logoUrl: tool.logoUrl,
+  }));
+
+  const blogPosts = postRows.map((post) => ({
+    slug: post.slug,
+    title: post.title,
+    excerpt: getExcerpt(post.excerpt, post.content),
+    readTime: `${post.readTime || 1} min read`,
+    date: formatDate(post.publishedAt || post.createdAt),
+    category: post.categories[0]?.name || 'General',
+  }));
+
+  const stats = [
+    { label: 'Total Tools', value: formatNumber(totalTools) },
+    { label: 'Users', value: formatNumber(totalUsers) },
+    { label: 'Reviews', value: formatNumber(totalReviews) },
+    { label: 'Blog Posts', value: formatNumber(totalPosts) },
+  ];
+
   return (
     <PageTransition>
       <div className="space-y-16">
@@ -46,7 +160,7 @@ export default function HomePage() {
             {categories.map((category) => (
               <StaggerItem key={category.name}>
                 <Link
-                  href={`/tools?category=${encodeURIComponent(category.name)}`}
+                  href={`/tools?category=${encodeURIComponent(category.slug)}`}
                   className="group block rounded-2xl border border-white/10 bg-brand-surface p-5 transition hover:-translate-y-1 hover:border-brand-primary/60 hover:shadow-lg hover:shadow-brand-primary/10"
                 >
                   <p className="text-3xl">{category.icon}</p>

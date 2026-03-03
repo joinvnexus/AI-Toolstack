@@ -49,12 +49,35 @@ export default function ToolsPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+  const normalizedCategory = (() => {
+    if (selectedCategory === 'All') return 'All';
+
+    const bySlug = categories.find((category) => category.slug === selectedCategory);
+    if (bySlug) return bySlug.slug;
+
+    const byName = categories.find(
+      (category) => category.name.toLowerCase() === selectedCategory.toLowerCase()
+    );
+
+    return byName?.slug || selectedCategory;
+  })();
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const res = await fetch('/api/categories');
         const data = await res.json();
         setCategories(data);
+
+        if (selectedCategory !== 'All') {
+          const matchedByName = data.find(
+            (category: Category) => category.name.toLowerCase() === selectedCategory.toLowerCase()
+          );
+
+          if (matchedByName && matchedByName.slug !== selectedCategory) {
+            setSelectedCategory(matchedByName.slug);
+          }
+        }
       } catch (error) {
         console.error('Error fetching categories:', error);
       }
@@ -70,7 +93,7 @@ export default function ToolsPage() {
         params.set('page', page.toString());
         params.set('limit', '12');
         if (search) params.set('search', search);
-        if (selectedCategory !== 'All') params.set('category', selectedCategory);
+        if (normalizedCategory !== 'All') params.set('category', normalizedCategory);
         if (selectedPricing !== 'All') params.set('pricing', selectedPricing);
         params.set('sort', sortBy);
 
@@ -85,7 +108,7 @@ export default function ToolsPage() {
       }
     };
     fetchTools();
-  }, [search, selectedCategory, selectedPricing, sortBy, page]);
+  }, [search, normalizedCategory, selectedPricing, sortBy, page]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,17 +142,27 @@ export default function ToolsPage() {
             <div className="space-y-3">
               <h4 className="text-sm font-medium text-brand-muted">Category</h4>
               <div className="flex flex-wrap gap-2 lg:flex-col">
-                {['All', ...categories.map(c => c.name)].map((category) => (
+                <button
+                  onClick={() => handleCategoryChange('All')}
+                  className={`rounded-lg px-3 py-2 text-sm text-left transition ${
+                    normalizedCategory === 'All'
+                      ? 'bg-brand-primary text-white'
+                      : 'bg-white/5 hover:bg-white/10'
+                  }`}
+                >
+                  All
+                </button>
+                {categories.map((category) => (
                   <button
-                    key={category}
-                    onClick={() => handleCategoryChange(category)}
+                    key={category.slug}
+                    onClick={() => handleCategoryChange(category.slug)}
                     className={`rounded-lg px-3 py-2 text-sm text-left transition ${
-                      selectedCategory === category
+                      normalizedCategory === category.slug
                         ? 'bg-brand-primary text-white'
                         : 'bg-white/5 hover:bg-white/10'
                     }`}
                   >
-                    {category}
+                    {category.name}
                   </button>
                 ))}
               </div>
@@ -212,7 +245,7 @@ export default function ToolsPage() {
                     longDescription: tool.description,
                     category: tool.category.name,
                     features: [],
-                    pricing: (tool.pricingModel.charAt(0) + tool.pricingModel.slice(1).toLowerCase()) as 'Free' | 'Paid' | 'Freemium',
+                    pricing: tool.pricingModel as 'FREE' | 'PAID' | 'FREEMIUM',
                     rating: tool.rating,
                     reviews: tool.reviewCount,
                     websiteUrl: '#'
