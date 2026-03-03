@@ -66,6 +66,42 @@ type BlogRow = {
   }>;
 };
 
+type CategoryCardItem = {
+  name: string;
+  slug: string;
+  icon: string;
+  toolCount: number;
+};
+
+type ToolCardItem = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  longDescription: string;
+  category: string;
+  features: string[];
+  pricing: 'FREE' | 'PAID' | 'FREEMIUM';
+  rating: number;
+  reviews: number;
+  websiteUrl: string;
+  logoUrl: string;
+};
+
+type BlogCardItem = {
+  slug: string;
+  title: string;
+  excerpt: string;
+  readTime: string;
+  date: string;
+  category: string;
+};
+
+type StatItem = {
+  label: string;
+  value: string;
+};
+
 export default async function HomePage() {
   noStore();
 
@@ -117,14 +153,14 @@ export default async function HomePage() {
     prisma.blogPost.count({ where: { published: true } }),
   ]);
 
-  const categories = categoryRows.map((category: CategoryRow) => ({
+  const categories: CategoryCardItem[] = categoryRows.map((category: CategoryRow) => ({
     name: category.name,
     slug: category.slug,
     icon: category.icon || categoryIcons[category.slug] || '•',
     toolCount: category.toolCount,
   }));
 
-  const tools = toolRows.map((tool: ToolRow) => ({
+  const tools: ToolCardItem[] = toolRows.map((tool: ToolRow) => ({
     id: tool.id,
     name: tool.name,
     slug: tool.slug,
@@ -139,7 +175,7 @@ export default async function HomePage() {
     logoUrl: tool.logoUrl,
   }));
 
-  const blogPosts = postRows.map((post: BlogRow) => ({
+  const blogPosts: BlogCardItem[] = postRows.map((post: BlogRow) => ({
     slug: post.slug,
     title: post.title,
     excerpt: getExcerpt(post.excerpt, post.content),
@@ -148,7 +184,7 @@ export default async function HomePage() {
     category: post.categories[0]?.name || 'General',
   }));
 
-  const stats = [
+  const stats: StatItem[] = [
     { label: 'Total Tools', value: formatNumber(totalTools) },
     { label: 'Users', value: formatNumber(totalUsers) },
     { label: 'Reviews', value: formatNumber(totalReviews) },
