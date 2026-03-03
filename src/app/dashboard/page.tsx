@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -52,7 +52,7 @@ const VALID_TABS: DashboardTab[] = ['bookmarks', 'reviews', 'settings'];
 const getTabFromQuery = (tab: string | null): DashboardTab =>
   VALID_TABS.includes(tab as DashboardTab) ? (tab as DashboardTab) : 'bookmarks';
 
-export default function DashboardPage() {
+function DashboardPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -287,5 +287,21 @@ export default function DashboardPage() {
         </div>
       )}
     </div>
+  );
+}
+
+function DashboardPageFallback() {
+  return (
+    <div className="flex items-center justify-center py-20">
+      <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
+    </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<DashboardPageFallback />}>
+      <DashboardPageContent />
+    </Suspense>
   );
 }

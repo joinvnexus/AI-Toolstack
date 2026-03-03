@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ToolCard } from '@/components/tools/tool-card';
 import { Search, Filter, Loader2 } from 'lucide-react';
@@ -34,7 +34,7 @@ type Category = {
   toolCount: number;
 };
 
-export default function ToolsPage() {
+function ToolsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -284,5 +284,21 @@ export default function ToolsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function ToolsPageFallback() {
+  return (
+    <div className="flex items-center justify-center py-12">
+      <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
+    </div>
+  );
+}
+
+export default function ToolsPage() {
+  return (
+    <Suspense fallback={<ToolsPageFallback />}>
+      <ToolsPageContent />
+    </Suspense>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Loader2, Search } from 'lucide-react';
@@ -32,7 +32,7 @@ type BlogResult = {
   }>;
 };
 
-export default function SearchPage() {
+function SearchPageContent() {
   const searchParams = useSearchParams();
   const query = (searchParams.get('q') || '').trim();
 
@@ -193,5 +193,21 @@ export default function SearchPage() {
         </>
       )}
     </div>
+  );
+}
+
+function SearchPageFallback() {
+  return (
+    <div className="flex items-center justify-center py-16">
+      <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
+    </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<SearchPageFallback />}>
+      <SearchPageContent />
+    </Suspense>
   );
 }
