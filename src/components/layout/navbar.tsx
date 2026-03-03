@@ -258,32 +258,7 @@ export function Navbar() {
                   {link.label}
                 </Link>
               ))}
-              {user ? (
-                <>
-                  <p className="px-4 py-1 text-xs text-brand-muted">
-                    {isAdmin ? 'ADMIN MENU' : 'USER MENU'}
-                  </p>
-                  {dropdownLinks.map((link) => (
-                    <Link
-                      key={`${link.href}-${link.label}`}
-                      href={link.href}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="block rounded-lg px-4 py-2 text-brand-muted hover:bg-white/5 hover:text-white"
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                  <button
-                    onClick={() => {
-                      handleSignOut();
-                      setMobileMenuOpen(false);
-                    }}
-                    className="block w-full rounded-lg px-4 py-2 text-left text-red-400 hover:bg-white/5"
-                  >
-                    Sign Out
-                  </button>
-                </>
-              ) : (
+              {user ? null : (
                 <div className="space-y-2 pt-2">
                   <Link
                     href="/login"
