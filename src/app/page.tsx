@@ -30,6 +30,42 @@ const getExcerpt = (excerpt: string | null, content: string) => {
   return `${plainText.slice(0, 137)}...`;
 };
 
+type CategoryRow = {
+  name: string;
+  slug: string;
+  icon: string | null;
+  toolCount: number;
+};
+
+type ToolRow = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  longDescription: string;
+  pricingModel: 'FREE' | 'PAID' | 'FREEMIUM';
+  rating: number;
+  reviewCount: number;
+  websiteUrl: string;
+  logoUrl: string;
+  category: {
+    name: string;
+  } | null;
+};
+
+type BlogRow = {
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  content: string;
+  readTime: number | null;
+  publishedAt: Date | null;
+  createdAt: Date;
+  categories: Array<{
+    name: string;
+  }>;
+};
+
 export default async function HomePage() {
   noStore();
 
@@ -81,14 +117,14 @@ export default async function HomePage() {
     prisma.blogPost.count({ where: { published: true } }),
   ]);
 
-  const categories = categoryRows.map((category) => ({
+  const categories = categoryRows.map((category: CategoryRow) => ({
     name: category.name,
     slug: category.slug,
     icon: category.icon || categoryIcons[category.slug] || '•',
     toolCount: category.toolCount,
   }));
 
-  const tools = toolRows.map((tool) => ({
+  const tools = toolRows.map((tool: ToolRow) => ({
     id: tool.id,
     name: tool.name,
     slug: tool.slug,
@@ -103,7 +139,7 @@ export default async function HomePage() {
     logoUrl: tool.logoUrl,
   }));
 
-  const blogPosts = postRows.map((post) => ({
+  const blogPosts = postRows.map((post: BlogRow) => ({
     slug: post.slug,
     title: post.title,
     excerpt: getExcerpt(post.excerpt, post.content),
