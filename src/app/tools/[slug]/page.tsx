@@ -15,6 +15,7 @@ type Tool = {
   longDescription: string;
   logoUrl: string;
   websiteUrl: string;
+  affiliateUrl: string | null;
   pricingModel: string;
   priceRange: string | null;
   rating: number;
@@ -223,13 +224,24 @@ export default function ToolDetailsPage() {
     { id: 'alternatives', label: 'Alternatives' },
   ];
 
+  const primaryUrl = tool.affiliateUrl || tool.websiteUrl;
+  const primaryLabel = tool.affiliateUrl ? 'Visit via Affiliate' : 'Visit Website';
+
   return (
     <div className="space-y-8">
       {/* Hero Section */}
       <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-brand-surface to-brand-background p-8">
         <div className="flex flex-col gap-6 md:flex-row md:items-start">
           <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-white/10 bg-white">
-            <span className="text-2xl font-bold text-black">{tool.name.charAt(0)}</span>
+            {tool.logoUrl ? (
+              <img
+                src={tool.logoUrl}
+                alt={`${tool.name} logo`}
+                className="h-full w-full rounded-2xl object-cover"
+              />
+            ) : (
+              <span className="text-2xl font-bold text-black">{tool.name.charAt(0)}</span>
+            )}
           </div>
           
           <div className="flex-1">
@@ -241,14 +253,24 @@ export default function ToolDetailsPage() {
               
               <div className="flex gap-3">
                 <a 
-                  href={tool.websiteUrl} 
+                  href={primaryUrl} 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 rounded-xl bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary/90"
                 >
                   <ExternalLink className="h-4 w-4" />
-                  Visit Website
+                  {primaryLabel}
                 </a>
+                {tool.affiliateUrl && (
+                  <a
+                    href={tool.websiteUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium hover:bg-white/10"
+                  >
+                    Official Site
+                  </a>
+                )}
                 <button 
                   onClick={handleBookmark}
                   className={`flex items-center gap-2 rounded-xl border border-white/10 px-4 py-2 text-sm font-medium hover:bg-white/10 ${
@@ -336,6 +358,32 @@ export default function ToolDetailsPage() {
                     <span>{tool.priceRange}</span>
                   </div>
                 )}
+                <div className="flex justify-between gap-3">
+                  <span className="text-brand-muted">Website</span>
+                  <a
+                    href={tool.websiteUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="truncate text-brand-primary hover:underline"
+                  >
+                    Open
+                  </a>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <span className="text-brand-muted">Affiliate</span>
+                  {tool.affiliateUrl ? (
+                    <a
+                      href={tool.affiliateUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="truncate text-brand-primary hover:underline"
+                    >
+                      Open
+                    </a>
+                  ) : (
+                    <span className="text-brand-muted">Not available</span>
+                  )}
+                </div>
                 <div className="flex justify-between">
                   <span className="text-brand-muted">Views</span>
                   <span>{tool.views}</span>
