@@ -12,6 +12,14 @@ const toolSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   description: z.string().min(1, 'Description is required'),
   longDescription: z.string().optional(),
+  overview: z.string().optional(),
+  features: z.string().optional(),
+  pros: z.string().optional(),
+  cons: z.string().optional(),
+  pricingDetails: z.string().optional(),
+  alternativeTools: z.string().optional(),
+  videoUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  conclusion: z.string().optional(),
   logoUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   websiteUrl: z.string().url('Must be a valid URL'),
   affiliateUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
@@ -25,6 +33,54 @@ type ToolFormData = z.infer<typeof toolSchema>;
 type Category = {
   id: string;
   name: string;
+};
+
+const parseListInput = (value?: string) =>
+  (value || '')
+    .split('\n')
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+const buildLongDescription = (data: ToolFormData) => {
+  const sections: string[] = [];
+
+  if (data.overview?.trim()) {
+    sections.push(`Overview\n${data.overview.trim()}`);
+  }
+
+  const features = parseListInput(data.features);
+  if (features.length > 0) {
+    sections.push(`Features\n${features.map((item) => `- ${item}`).join('\n')}`);
+  }
+
+  const pros = parseListInput(data.pros);
+  if (pros.length > 0) {
+    sections.push(`Pros\n${pros.map((item) => `- ${item}`).join('\n')}`);
+  }
+
+  const cons = parseListInput(data.cons);
+  if (cons.length > 0) {
+    sections.push(`Cons\n${cons.map((item) => `- ${item}`).join('\n')}`);
+  }
+
+  if (data.pricingDetails?.trim()) {
+    sections.push(`Pricing Details\n${data.pricingDetails.trim()}`);
+  }
+
+  const alternatives = parseListInput(data.alternativeTools);
+  if (alternatives.length > 0) {
+    sections.push(`Alternative Tools\n${alternatives.map((item) => `- ${item}`).join('\n')}`);
+  }
+
+  if (data.videoUrl?.trim()) {
+    sections.push(`Video\n${data.videoUrl.trim()}`);
+  }
+
+  if (data.conclusion?.trim()) {
+    sections.push(`Conclusion\n${data.conclusion.trim()}`);
+  }
+
+  return sections.join('\n\n').trim();
 };
 
 export default function NewToolPage() {
@@ -64,15 +120,30 @@ export default function NewToolPage() {
 
   const onSubmit = async (data: ToolFormData) => {
     setLoading(true);
+    const compiledLongDescription = buildLongDescription(data);
     try {
       const res = await fetch('/api/tools', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...data,
+          name: data.name,
+          description: data.description,
+          overview: data.overview?.trim() || undefined,
+          features: parseListInput(data.features),
+          pros: parseListInput(data.pros),
+          cons: parseListInput(data.cons),
+          pricingDetails: data.pricingDetails?.trim() || undefined,
+          alternativeTools: parseListInput(data.alternativeTools),
+          videoUrl: data.videoUrl?.trim() || undefined,
+          conclusion: data.conclusion?.trim() || undefined,
           logoUrl: data.logoUrl || undefined,
+          websiteUrl: data.websiteUrl,
           affiliateUrl: data.affiliateUrl || undefined,
-          longDescription: data.longDescription || data.description,
+          pricingModel: data.pricingModel,
+          priceRange: data.priceRange || undefined,
+          categoryId: data.categoryId,
+          longDescription:
+            compiledLongDescription || data.longDescription?.trim() || data.description,
         }),
       });
 
@@ -146,10 +217,10 @@ export default function NewToolPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Long Description</label>
+            <label className="block text-sm font-medium mb-2">Fallback Long Description</label>
             <textarea
               {...register('longDescription')}
-              placeholder="Detailed description"
+              placeholder="Used only if section fields below are empty"
               rows={4}
               className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
             />
@@ -238,6 +309,97 @@ export default function NewToolPage() {
             {errors.affiliateUrl && (
               <p className="mt-1 text-sm text-red-500">{errors.affiliateUrl.message}</p>
             )}
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-white/10 bg-brand-surface p-6 space-y-4">
+          <h2 className="text-lg font-semibold">Detailed Content Sections</h2>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Overview</label>
+            <textarea
+              {...register('overview')}
+              placeholder="High-level summary of what the tool does"
+              rows={3}
+              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+            />
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium mb-2">Features</label>
+              <textarea
+                {...register('features')}
+                placeholder={"One feature per line\ne.g., AI chat\nCode generation"}
+                rows={4}
+                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Alternative Tools</label>
+              <textarea
+                {...register('alternativeTools')}
+                placeholder={"One alternative per line\ne.g., Claude\nGemini"}
+                rows={4}
+                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium mb-2">Pros</label>
+              <textarea
+                {...register('pros')}
+                placeholder={"One pro per line\ne.g., Fast responses"}
+                rows={4}
+                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Cons</label>
+              <textarea
+                {...register('cons')}
+                placeholder={"One con per line\ne.g., Limited free tier"}
+                rows={4}
+                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Pricing Details</label>
+            <textarea
+              {...register('pricingDetails')}
+              placeholder="Explain plans, limits, trial, and billing notes"
+              rows={3}
+              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Video URL</label>
+            <input
+              {...register('videoUrl')}
+              type="url"
+              placeholder="https://youtube.com/watch?v=..."
+              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+            />
+            {errors.videoUrl && (
+              <p className="mt-1 text-sm text-red-500">{errors.videoUrl.message}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Conclusion</label>
+            <textarea
+              {...register('conclusion')}
+              placeholder="Final verdict and who should use this tool"
+              rows={3}
+              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+            />
           </div>
         </div>
 

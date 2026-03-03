@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+const normalizeStringArray = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => (typeof item === 'string' ? item.trim() : ''))
+    .filter(Boolean);
+};
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -76,6 +83,14 @@ export async function POST(request: Request) {
       name,
       description,
       longDescription,
+      overview,
+      features,
+      pros,
+      cons,
+      pricingDetails,
+      alternativeTools,
+      videoUrl,
+      conclusion,
       logoUrl,
       websiteUrl,
       affiliateUrl,
@@ -97,6 +112,14 @@ export async function POST(request: Request) {
         slug,
         description,
         longDescription: longDescription || description,
+        overview: overview?.trim() || null,
+        features: normalizeStringArray(features),
+        pros: normalizeStringArray(pros),
+        cons: normalizeStringArray(cons),
+        pricingDetails: pricingDetails?.trim() || null,
+        alternativeTools: normalizeStringArray(alternativeTools),
+        videoUrl: videoUrl?.trim() || null,
+        conclusion: conclusion?.trim() || null,
         logoUrl,
         websiteUrl,
         affiliateUrl,

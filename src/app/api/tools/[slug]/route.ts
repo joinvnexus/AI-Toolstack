@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+const normalizeStringArray = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => (typeof item === 'string' ? item.trim() : ''))
+    .filter(Boolean);
+};
+
 export async function GET(
   request: Request,
   { params }: { params: { slug: string } }
@@ -60,6 +67,14 @@ export async function PUT(
       name,
       description,
       longDescription,
+      overview,
+      features,
+      pros,
+      cons,
+      pricingDetails,
+      alternativeTools,
+      videoUrl,
+      conclusion,
       logoUrl,
       websiteUrl,
       affiliateUrl,
@@ -97,6 +112,18 @@ export async function PUT(
         name: name || tool.name,
         description: description || tool.description,
         longDescription: longDescription || tool.longDescription,
+        overview: overview !== undefined ? overview?.trim() || null : tool.overview,
+        features: features !== undefined ? normalizeStringArray(features) : tool.features,
+        pros: pros !== undefined ? normalizeStringArray(pros) : tool.pros,
+        cons: cons !== undefined ? normalizeStringArray(cons) : tool.cons,
+        pricingDetails:
+          pricingDetails !== undefined ? pricingDetails?.trim() || null : tool.pricingDetails,
+        alternativeTools:
+          alternativeTools !== undefined
+            ? normalizeStringArray(alternativeTools)
+            : tool.alternativeTools,
+        videoUrl: videoUrl !== undefined ? videoUrl?.trim() || null : tool.videoUrl,
+        conclusion: conclusion !== undefined ? conclusion?.trim() || null : tool.conclusion,
         logoUrl: logoUrl || tool.logoUrl,
         websiteUrl: websiteUrl || tool.websiteUrl,
         affiliateUrl: affiliateUrl !== undefined ? affiliateUrl : tool.affiliateUrl,

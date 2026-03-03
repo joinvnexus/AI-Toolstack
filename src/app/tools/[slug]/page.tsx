@@ -13,6 +13,14 @@ type Tool = {
   slug: string;
   description: string;
   longDescription: string;
+  overview: string | null;
+  features: string[];
+  pros: string[];
+  cons: string[];
+  pricingDetails: string | null;
+  alternativeTools: string[];
+  videoUrl: string | null;
+  conclusion: string | null;
   logoUrl: string;
   websiteUrl: string;
   affiliateUrl: string | null;
@@ -276,6 +284,15 @@ export default function ToolDetailsPage() {
 
   const primaryUrl = tool.affiliateUrl || tool.websiteUrl;
   const primaryLabel = tool.affiliateUrl ? 'Visit via Affiliate' : 'Visit Website';
+  const hasStructuredSections =
+    Boolean(tool.overview?.trim()) ||
+    tool.features.length > 0 ||
+    tool.pros.length > 0 ||
+    tool.cons.length > 0 ||
+    Boolean(tool.pricingDetails?.trim()) ||
+    tool.alternativeTools.length > 0 ||
+    Boolean(tool.videoUrl?.trim()) ||
+    Boolean(tool.conclusion?.trim());
 
   return (
     <div className="space-y-8">
@@ -383,8 +400,98 @@ export default function ToolDetailsPage() {
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-6">
             <div className="rounded-2xl border border-white/10 bg-brand-surface p-6">
-              <h2 className="text-xl font-semibold">About</h2>
-              <p className="mt-4 text-brand-muted whitespace-pre-line">{tool.longDescription || tool.description}</p>
+              <h2 className="text-xl font-semibold">Overview</h2>
+              {hasStructuredSections ? (
+                <div className="mt-4 space-y-6">
+                  {tool.overview && (
+                    <p className="text-brand-muted whitespace-pre-line">{tool.overview}</p>
+                  )}
+
+                  {tool.features.length > 0 && (
+                    <section>
+                      <h3 className="mb-2 text-base font-semibold">Features</h3>
+                      <ul className="list-disc space-y-2 pl-5 text-brand-muted">
+                        {tool.features.map((feature, index) => (
+                          <li key={`${feature}-${index}`}>{feature}</li>
+                        ))}
+                      </ul>
+                    </section>
+                  )}
+
+                  {(tool.pros.length > 0 || tool.cons.length > 0) && (
+                    <section className="grid gap-4 sm:grid-cols-2">
+                      <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-4">
+                        <h3 className="text-base font-semibold text-green-300">Pros</h3>
+                        {tool.pros.length > 0 ? (
+                          <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-brand-muted">
+                            {tool.pros.map((item, index) => (
+                              <li key={`${item}-${index}`}>{item}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="mt-2 text-sm text-brand-muted">Not specified.</p>
+                        )}
+                      </div>
+
+                      <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-4">
+                        <h3 className="text-base font-semibold text-red-300">Cons</h3>
+                        {tool.cons.length > 0 ? (
+                          <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-brand-muted">
+                            {tool.cons.map((item, index) => (
+                              <li key={`${item}-${index}`}>{item}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="mt-2 text-sm text-brand-muted">Not specified.</p>
+                        )}
+                      </div>
+                    </section>
+                  )}
+
+                  {tool.pricingDetails && (
+                    <section>
+                      <h3 className="mb-2 text-base font-semibold">Pricing Details</h3>
+                      <p className="text-brand-muted whitespace-pre-line">{tool.pricingDetails}</p>
+                    </section>
+                  )}
+
+                  {tool.alternativeTools.length > 0 && (
+                    <section>
+                      <h3 className="mb-2 text-base font-semibold">Alternative Tools</h3>
+                      <ul className="list-disc space-y-2 pl-5 text-brand-muted">
+                        {tool.alternativeTools.map((item, index) => (
+                          <li key={`${item}-${index}`}>{item}</li>
+                        ))}
+                      </ul>
+                    </section>
+                  )}
+
+                  {tool.videoUrl && (
+                    <section>
+                      <h3 className="mb-2 text-base font-semibold">Video</h3>
+                      <a
+                        href={tool.videoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-brand-primary hover:underline"
+                      >
+                        Watch Video
+                      </a>
+                    </section>
+                  )}
+
+                  {tool.conclusion && (
+                    <section>
+                      <h3 className="mb-2 text-base font-semibold">Conclusion</h3>
+                      <p className="text-brand-muted whitespace-pre-line">{tool.conclusion}</p>
+                    </section>
+                  )}
+                </div>
+              ) : (
+                <p className="mt-4 text-brand-muted whitespace-pre-line">
+                  {tool.longDescription || tool.description}
+                </p>
+              )}
             </div>
           </div>
 

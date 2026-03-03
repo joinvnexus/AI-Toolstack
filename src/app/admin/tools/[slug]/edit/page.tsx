@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -12,6 +12,14 @@ const toolSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   description: z.string().min(1, 'Description is required'),
   longDescription: z.string().optional(),
+  overview: z.string().optional(),
+  features: z.string().optional(),
+  pros: z.string().optional(),
+  cons: z.string().optional(),
+  pricingDetails: z.string().optional(),
+  alternativeTools: z.string().optional(),
+  videoUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  conclusion: z.string().optional(),
   logoUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   websiteUrl: z.string().url('Must be a valid URL'),
   affiliateUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
@@ -32,17 +40,75 @@ type Tool = {
   name: string;
   description: string;
   longDescription: string;
+  overview: string | null;
+  features: string[];
+  pros: string[];
+  cons: string[];
+  pricingDetails: string | null;
+  alternativeTools: string[];
+  videoUrl: string | null;
+  conclusion: string | null;
   logoUrl: string;
   websiteUrl: string;
-  affiliateUrl: string;
+  affiliateUrl: string | null;
   pricingModel: string;
-  priceRange: string;
+  priceRange: string | null;
   categoryId: string;
+};
+
+const parseListInput = (value?: string) =>
+  (value || '')
+    .split('\n')
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+const buildLongDescription = (data: ToolFormData) => {
+  const sections: string[] = [];
+
+  if (data.overview?.trim()) {
+    sections.push(`Overview\n${data.overview.trim()}`);
+  }
+
+  const features = parseListInput(data.features);
+  if (features.length > 0) {
+    sections.push(`Features\n${features.map((item) => `- ${item}`).join('\n')}`);
+  }
+
+  const pros = parseListInput(data.pros);
+  if (pros.length > 0) {
+    sections.push(`Pros\n${pros.map((item) => `- ${item}`).join('\n')}`);
+  }
+
+  const cons = parseListInput(data.cons);
+  if (cons.length > 0) {
+    sections.push(`Cons\n${cons.map((item) => `- ${item}`).join('\n')}`);
+  }
+
+  if (data.pricingDetails?.trim()) {
+    sections.push(`Pricing Details\n${data.pricingDetails.trim()}`);
+  }
+
+  const alternatives = parseListInput(data.alternativeTools);
+  if (alternatives.length > 0) {
+    sections.push(`Alternative Tools\n${alternatives.map((item) => `- ${item}`).join('\n')}`);
+  }
+
+  if (data.videoUrl?.trim()) {
+    sections.push(`Video\n${data.videoUrl.trim()}`);
+  }
+
+  if (data.conclusion?.trim()) {
+    sections.push(`Conclusion\n${data.conclusion.trim()}`);
+  }
+
+  return sections.join('\n\n').trim();
 };
 
 export default function EditToolPage() {
   const router = useRouter();
   const params = useParams();
+  const slugParam = params.slug;
+  const slug = Array.isArray(slugParam) ? slugParam[0] : slugParam;
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetchingData, setFetchingData] = useState(true);
@@ -62,19 +128,32 @@ export default function EditToolPage() {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!slug) {
+        setFetchingData(false);
+        return;
+      }
+
       try {
         const [toolRes, categoriesRes] = await Promise.all([
-          fetch(`/api/tools/${params.slug}`),
+          fetch(`/api/tools/${slug}`),
           fetch('/api/categories'),
         ]);
 
         if (toolRes.ok) {
-          const toolData = await toolRes.json();
+          const toolData: Tool = await toolRes.json();
           setTool(toolData);
           reset({
             name: toolData.name,
             description: toolData.description,
             longDescription: toolData.longDescription || '',
+            overview: toolData.overview || '',
+            features: (toolData.features || []).join('\n'),
+            pros: (toolData.pros || []).join('\n'),
+            cons: (toolData.cons || []).join('\n'),
+            pricingDetails: toolData.pricingDetails || '',
+            alternativeTools: (toolData.alternativeTools || []).join('\n'),
+            videoUrl: toolData.videoUrl || '',
+            conclusion: toolData.conclusion || '',
             logoUrl: toolData.logoUrl || '',
             websiteUrl: toolData.websiteUrl,
             affiliateUrl: toolData.affiliateUrl || '',
@@ -95,22 +174,38 @@ export default function EditToolPage() {
       }
     };
 
-    if (params.slug) {
-      fetchData();
-    }
-  }, [params.slug, reset]);
+    fetchData();
+  }, [slug, reset]);
 
   const onSubmit = async (data: ToolFormData) => {
+    if (!slug) return;
+
     setLoading(true);
+    const compiledLongDescription = buildLongDescription(data);
+
     try {
-      const res = await fetch(`/api/tools/${params.slug}`, {
+      const res = await fetch(`/api/tools/${slug}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...data,
+          name: data.name,
+          description: data.description,
+          overview: data.overview?.trim() || undefined,
+          features: parseListInput(data.features),
+          pros: parseListInput(data.pros),
+          cons: parseListInput(data.cons),
+          pricingDetails: data.pricingDetails?.trim() || undefined,
+          alternativeTools: parseListInput(data.alternativeTools),
+          videoUrl: data.videoUrl?.trim() || undefined,
+          conclusion: data.conclusion?.trim() || undefined,
           logoUrl: data.logoUrl || undefined,
+          websiteUrl: data.websiteUrl,
           affiliateUrl: data.affiliateUrl || undefined,
-          longDescription: data.longDescription || data.description,
+          pricingModel: data.pricingModel,
+          priceRange: data.priceRange || undefined,
+          categoryId: data.categoryId,
+          longDescription:
+            compiledLongDescription || data.longDescription?.trim() || data.description,
         }),
       });
 
@@ -149,7 +244,6 @@ export default function EditToolPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center gap-4">
         <Link
           href="/admin/tools"
@@ -163,26 +257,23 @@ export default function EditToolPage() {
         </div>
       </div>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-2xl">
-        <div className="rounded-xl border border-white/10 bg-brand-surface p-6 space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="max-w-2xl space-y-6">
+        <div className="space-y-4 rounded-xl border border-white/10 bg-brand-surface p-6">
           <h2 className="text-lg font-semibold">Basic Information</h2>
-          
+
           <div>
-            <label className="block text-sm font-medium mb-2">Tool Name *</label>
+            <label className="mb-2 block text-sm font-medium">Tool Name *</label>
             <input
               {...register('name')}
               type="text"
               placeholder="e.g., ChatGPT, Midjourney"
               className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
             />
-            {errors.name && (
-              <p className="mt-1 text-sm text-red-500">{errors.name.message}</p>
-            )}
+            {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Short Description *</label>
+            <label className="mb-2 block text-sm font-medium">Short Description *</label>
             <textarea
               {...register('description')}
               placeholder="Brief description (1-2 sentences)"
@@ -195,17 +286,17 @@ export default function EditToolPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Long Description</label>
+            <label className="mb-2 block text-sm font-medium">Fallback Long Description</label>
             <textarea
               {...register('longDescription')}
-              placeholder="Detailed description"
+              placeholder="Used only if section fields below are empty"
               rows={4}
               className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Category *</label>
+            <label className="mb-2 block text-sm font-medium">Category *</label>
             <select
               {...register('categoryId')}
               className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary"
@@ -223,12 +314,12 @@ export default function EditToolPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-brand-surface p-6 space-y-4">
+        <div className="space-y-4 rounded-xl border border-white/10 bg-brand-surface p-6">
           <h2 className="text-lg font-semibold">Pricing & Links</h2>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium mb-2">Pricing Model *</label>
+              <label className="mb-2 block text-sm font-medium">Pricing Model *</label>
               <select
                 {...register('pricingModel')}
                 className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary"
@@ -240,7 +331,7 @@ export default function EditToolPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Price Range</label>
+              <label className="mb-2 block text-sm font-medium">Price Range</label>
               <input
                 {...register('priceRange')}
                 type="text"
@@ -251,7 +342,7 @@ export default function EditToolPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Website URL *</label>
+            <label className="mb-2 block text-sm font-medium">Website URL *</label>
             <input
               {...register('websiteUrl')}
               type="url"
@@ -264,20 +355,18 @@ export default function EditToolPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Logo URL</label>
+            <label className="mb-2 block text-sm font-medium">Logo URL</label>
             <input
               {...register('logoUrl')}
               type="url"
               placeholder="https://example.com/logo.png"
               className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
             />
-            {errors.logoUrl && (
-              <p className="mt-1 text-sm text-red-500">{errors.logoUrl.message}</p>
-            )}
+            {errors.logoUrl && <p className="mt-1 text-sm text-red-500">{errors.logoUrl.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Affiliate URL</label>
+            <label className="mb-2 block text-sm font-medium">Affiliate URL</label>
             <input
               {...register('affiliateUrl')}
               type="url"
@@ -287,6 +376,95 @@ export default function EditToolPage() {
             {errors.affiliateUrl && (
               <p className="mt-1 text-sm text-red-500">{errors.affiliateUrl.message}</p>
             )}
+          </div>
+        </div>
+
+        <div className="space-y-4 rounded-xl border border-white/10 bg-brand-surface p-6">
+          <h2 className="text-lg font-semibold">Detailed Content Sections</h2>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium">Overview</label>
+            <textarea
+              {...register('overview')}
+              placeholder="High-level summary of what the tool does"
+              rows={3}
+              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+            />
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="mb-2 block text-sm font-medium">Features</label>
+              <textarea
+                {...register('features')}
+                placeholder={"One feature per line\ne.g., AI chat\nCode generation"}
+                rows={4}
+                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium">Alternative Tools</label>
+              <textarea
+                {...register('alternativeTools')}
+                placeholder={"One alternative per line\ne.g., Claude\nGemini"}
+                rows={4}
+                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="mb-2 block text-sm font-medium">Pros</label>
+              <textarea
+                {...register('pros')}
+                placeholder={"One pro per line\ne.g., Fast responses"}
+                rows={4}
+                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium">Cons</label>
+              <textarea
+                {...register('cons')}
+                placeholder={"One con per line\ne.g., Limited free tier"}
+                rows={4}
+                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium">Pricing Details</label>
+            <textarea
+              {...register('pricingDetails')}
+              placeholder="Explain plans, limits, trial, and billing notes"
+              rows={3}
+              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium">Video URL</label>
+            <input
+              {...register('videoUrl')}
+              type="url"
+              placeholder="https://youtube.com/watch?v=..."
+              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+            />
+            {errors.videoUrl && <p className="mt-1 text-sm text-red-500">{errors.videoUrl.message}</p>}
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium">Conclusion</label>
+            <textarea
+              {...register('conclusion')}
+              placeholder="Final verdict and who should use this tool"
+              rows={3}
+              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+            />
           </div>
         </div>
 
@@ -302,11 +480,7 @@ export default function EditToolPage() {
             disabled={loading}
             className="flex items-center gap-2 rounded-lg bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary/90 disabled:opacity-50"
           >
-            {loading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4" />
-            )}
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             Save Changes
           </button>
         </div>

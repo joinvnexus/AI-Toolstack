@@ -27,6 +27,14 @@ export interface Tool {
   slug: string;
   description: string;
   longDescription: string;
+  overview: string | null;
+  features: string[];
+  pros: string[];
+  cons: string[];
+  pricingDetails: string | null;
+  alternativeTools: string[];
+  videoUrl: string | null;
+  conclusion: string | null;
   logoUrl: string;
   websiteUrl: string;
   affiliateUrl: string | null;

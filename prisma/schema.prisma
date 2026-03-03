@@ -37,6 +37,14 @@ model Tool {
   slug            String       @unique
   description     String       @db.Text
   longDescription String       @db.Text
+  overview        String?      @db.Text
+  features        String[]     @default([])
+  pros            String[]     @default([])
+  cons            String[]     @default([])
+  pricingDetails  String?      @db.Text
+  alternativeTools String[]    @default([])
+  videoUrl        String?
+  conclusion      String?      @db.Text
   logoUrl         String
   websiteUrl      String
   affiliateUrl    String?
