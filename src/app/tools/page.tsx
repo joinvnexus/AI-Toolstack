@@ -132,7 +132,7 @@ function ToolsPageContent() {
       <div className="flex flex-col gap-4 lg:flex-row">
         {/* Filters Sidebar */}
         <aside className="w-full space-y-6 lg:w-64 lg:flex-shrink-0">
-          <div className="ui-card p-5">
+          <div className="ui-card p-3 sm:p-5">
             <div className="flex items-center gap-2 mb-4">
               <Filter className="h-4 w-4" />
               <h3 className="font-medium">Filters</h3>
@@ -141,10 +141,10 @@ function ToolsPageContent() {
             {/* Categories */}
             <div className="space-y-3">
               <h4 className="text-sm font-medium text-brand-muted">Category</h4>
-              <div className="flex flex-wrap gap-2 lg:flex-col">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-1">
                 <button
                   onClick={() => handleCategoryChange('All')}
-                  className={`rounded-lg px-3 py-2 text-sm text-left transition ${
+                  className={`min-h-10 w-full rounded-lg px-3 py-2 text-sm text-left transition ${
                     normalizedCategory === 'All'
                       ? 'bg-brand-primary text-white'
                       : 'bg-brand-primary/10 hover:bg-brand-primary/15'
@@ -156,7 +156,7 @@ function ToolsPageContent() {
                   <button
                     key={category.slug}
                     onClick={() => handleCategoryChange(category.slug)}
-                    className={`rounded-lg px-3 py-2 text-sm text-left transition ${
+                    className={`min-h-10 w-full rounded-lg px-3 py-2 text-sm text-left transition ${
                       normalizedCategory === category.slug
                         ? 'bg-brand-primary text-white'
                         : 'bg-brand-primary/10 hover:bg-brand-primary/15'
@@ -171,7 +171,7 @@ function ToolsPageContent() {
             {/* Pricing */}
             <div className="space-y-3 mt-6">
               <h4 className="text-sm font-medium text-brand-muted">Pricing</h4>
-              <div className="flex flex-wrap gap-2">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-2">
                 {pricingOptions.map((pricing) => (
                   <button
                     key={pricing}
@@ -179,7 +179,7 @@ function ToolsPageContent() {
                       setSelectedPricing(pricing);
                       setPage(1);
                     }}
-                    className={`rounded-lg px-3 py-2 text-sm transition ${
+                    className={`min-h-10 w-full rounded-lg px-3 py-2 text-sm text-left transition ${
                       selectedPricing === pricing
                         ? 'bg-brand-primary text-white'
                         : 'bg-brand-primary/10 hover:bg-brand-primary/15'
@@ -196,8 +196,8 @@ function ToolsPageContent() {
         {/* Main Content */}
         <div className="flex-1 space-y-6">
           {/* Search and Sort */}
-          <div className="flex flex-col gap-4 sm:flex-row">
-            <form onSubmit={handleSearch} className="flex-1">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <form onSubmit={handleSearch} className="min-w-0 flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-muted" />
                 <input
@@ -212,7 +212,7 @@ function ToolsPageContent() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="rounded-xl border ui-border bg-brand-surface px-4 py-2.5 text-sm outline-none focus:border-brand-primary"
+              className="w-full min-w-0 rounded-xl border ui-border bg-brand-surface px-3 py-2.5 text-sm outline-none focus:border-brand-primary sm:w-52"
             >
               {sortOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -254,30 +254,32 @@ function ToolsPageContent() {
               ))}
             </div>
           ) : (
-            <div className="ui-card p-12 text-center">
+            <div className="ui-card p-6 text-center sm:p-12">
               <p className="text-brand-muted">No tools found matching your criteria.</p>
             </div>
           )}
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2">
+            <div className="flex flex-wrap items-center justify-center gap-2">
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="rounded-lg border ui-border bg-brand-surface px-4 py-2 text-sm disabled:opacity-50"
+                className="min-h-10 min-w-20 rounded-lg border ui-border bg-brand-surface px-3 py-2 text-sm disabled:opacity-50 sm:px-4"
               >
-                Previous
+                <span className="sm:hidden">Prev</span>
+                <span className="hidden sm:inline">Previous</span>
               </button>
-              <span className="text-sm text-brand-muted">
+              <span className="order-last w-full text-center text-sm text-brand-muted sm:order-none sm:w-auto">
                 Page {page} of {totalPages}
               </span>
               <button
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="rounded-lg border ui-border bg-brand-surface px-4 py-2 text-sm disabled:opacity-50"
+                className="min-h-10 min-w-20 rounded-lg border ui-border bg-brand-surface px-3 py-2 text-sm disabled:opacity-50 sm:px-4"
               >
-                Next
+                <span className="sm:hidden">Next</span>
+                <span className="hidden sm:inline">Next</span>
               </button>
             </div>
           )}

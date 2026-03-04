@@ -21,14 +21,16 @@ export function ToolCard({
     <motion.article
       whileHover={{ y: -4 }}
       transition={{ duration: 0.2 }}
-      className="ui-card group relative p-5 transition-colors hover:border-brand-primary/70"
+      className="ui-card group relative p-4 transition-colors sm:p-5 sm:hover:border-brand-primary/70"
     >
-      <div className="absolute inset-0 rounded-2xl bg-brand-primary/5 opacity-0 transition-opacity group-hover:opacity-100" />
+      <div className="absolute inset-0 rounded-2xl bg-brand-primary/5 opacity-0 transition-opacity sm:group-hover:opacity-100" />
 
       <div className="relative">
         <div className="mb-3 flex items-start justify-between gap-3">
           <div className="flex-1">
-            <h3 className="text-lg font-medium transition-colors group-hover:text-brand-primary">{tool.name}</h3>
+            <h3 className="text-base font-medium leading-tight transition-colors sm:text-lg sm:group-hover:text-brand-primary">
+              {tool.name}
+            </h3>
             <span className="ui-chip mt-1 inline-block">{tool.category}</span>
           </div>
 
@@ -59,17 +61,20 @@ export function ToolCard({
           )}
         </div>
 
-        <p className="line-clamp-2 text-sm text-brand-muted">{tool.description}</p>
+        <p className="line-clamp-2 text-xs text-brand-muted sm:text-sm">{tool.description}</p>
 
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap gap-1.5 sm:mt-4 sm:gap-2">
           {tool.features.slice(0, 2).map((feature) => (
-            <span key={feature} className="rounded-full border ui-border px-2.5 py-1 text-xs text-brand-muted">
+            <span
+              key={feature}
+              className="rounded-full border ui-border px-2 py-1 text-[11px] text-brand-muted sm:px-2.5 sm:text-xs"
+            >
               {feature}
             </span>
           ))}
         </div>
 
-        <div className="mt-4 flex items-center justify-between text-sm">
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs sm:mt-4 sm:text-sm">
           <span className="font-medium text-brand-secondary">{tool.pricing}</span>
           <span className="text-brand-muted">
             {'\u2b50'} {tool.rating.toFixed(1)} <span className="opacity-60">({tool.reviews})</span>
@@ -78,7 +83,7 @@ export function ToolCard({
 
         <Link
           href={`/tools/${tool.slug}`}
-          className="mt-4 inline-block -translate-y-2 text-sm font-medium text-brand-primary opacity-0 transition-all group-hover:translate-y-0 group-hover:opacity-100"
+          className="mt-3 inline-flex items-center text-sm font-medium text-brand-primary transition-all sm:mt-4 sm:-translate-y-2 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100"
         >
           View details &rarr;
         </Link>
