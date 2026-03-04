@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import { Loader2, Users, Wrench, FileText, Star, Settings, AlertCircle } from 'lucide-react';
+import { Loader2, Users, Wrench, FileText, Star, AlertCircle } from 'lucide-react';
 
 type Stats = {
   totalTools: number;
@@ -19,11 +19,21 @@ type UserProfile = {
   role: string;
 };
 
+type RecentActivityItem = {
+  id: string;
+  type: 'TOOL' | 'USER' | 'REVIEW' | 'POST';
+  title: string;
+  description: string;
+  createdAt: string;
+  href: string;
+};
+
 export default function AdminPage() {
   const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [recentActivity, setRecentActivity] = useState<RecentActivityItem[]>([]);
   const [stats, setStats] = useState<Stats>({
     totalTools: 0,
     totalUsers: 0,
@@ -79,6 +89,7 @@ export default function AdminPage() {
             totalReviews: statsData.totalReviews || 0,
             totalPosts: statsData.totalPosts || 0,
           });
+          setRecentActivity(Array.isArray(statsData.recentActivity) ? statsData.recentActivity : []);
         } else {
           setStats({
             totalTools: 0,
@@ -86,6 +97,7 @@ export default function AdminPage() {
             totalReviews: 0,
             totalPosts: 0,
           });
+          setRecentActivity([]);
         }
       } catch (error) {
         console.error('Error checking admin:', error);
@@ -126,6 +138,26 @@ export default function AdminPage() {
     { label: 'Total Reviews', value: stats.totalReviews, icon: Star, href: '/admin/reviews' },
     { label: 'Blog Posts', value: stats.totalPosts, icon: FileText, href: '/admin/posts' },
   ];
+
+  const activityTypeClass: Record<RecentActivityItem['type'], string> = {
+    TOOL: 'bg-sky-500/20 text-sky-300',
+    USER: 'bg-emerald-500/20 text-emerald-300',
+    REVIEW: 'bg-amber-500/20 text-amber-300',
+    POST: 'bg-violet-500/20 text-violet-300',
+  };
+
+  const formatRelativeTime = (value: string) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'Unknown time';
+
+    const diffMs = Date.now() - date.getTime();
+    if (diffMs < 60_000) return 'Just now';
+    if (diffMs < 3_600_000) return `${Math.floor(diffMs / 60_000)}m ago`;
+    if (diffMs < 86_400_000) return `${Math.floor(diffMs / 3_600_000)}h ago`;
+    if (diffMs < 604_800_000) return `${Math.floor(diffMs / 86_400_000)}d ago`;
+
+    return date.toLocaleDateString();
+  };
 
   return (
     <div className="space-y-8">
@@ -194,12 +226,37 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* Recent Activity Placeholder */}
+      {/* Recent Activity */}
       <div className="rounded-2xl border border-white/10 bg-brand-surface p-6">
         <h2 className="text-lg font-semibold">Recent Activity</h2>
-        <div className="mt-4 py-8 text-center">
-          <p className="text-brand-muted">No recent activity to display.</p>
-        </div>
+        {recentActivity.length > 0 ? (
+          <div className="mt-4 space-y-3">
+            {recentActivity.map((activity) => (
+              <Link
+                key={activity.id}
+                href={activity.href}
+                className="flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-white/[0.03] p-3 transition hover:border-brand-primary/40"
+              >
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide ${activityTypeClass[activity.type]}`}
+                    >
+                      {activity.type}
+                    </span>
+                    <p className="truncate text-sm font-medium">{activity.title}</p>
+                  </div>
+                  <p className="mt-1 truncate text-sm text-brand-muted">{activity.description}</p>
+                </div>
+                <p className="shrink-0 text-xs text-brand-muted">{formatRelativeTime(activity.createdAt)}</p>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-4 py-8 text-center">
+            <p className="text-brand-muted">No recent activity to display.</p>
+          </div>
+        )}
       </div>
     </div>
   );
