@@ -295,11 +295,11 @@ export default function ToolDetailsPage() {
     Boolean(tool.conclusion?.trim());
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Hero Section */}
-      <div className="ui-card-soft p-8">
+      <div className="ui-card-soft p-4 sm:p-6 lg:p-8">
         <div className="flex flex-col gap-6 md:flex-row md:items-start">
-          <div className="flex h-20 w-20 items-center justify-center rounded-2xl border ui-border bg-brand-surface">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border ui-border bg-brand-surface sm:h-20 sm:w-20">
             {tool.logoUrl ? (
               <img
                 src={tool.logoUrl}
@@ -313,17 +313,17 @@ export default function ToolDetailsPage() {
           
           <div className="flex-1">
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-              <div>
-                <h1 className="text-3xl font-bold">{tool.name}</h1>
-                <p className="mt-2 text-brand-muted">{tool.description}</p>
+              <div className="min-w-0">
+                <h1 className="text-2xl font-bold sm:text-3xl">{tool.name}</h1>
+                <p className="mt-2 text-sm text-brand-muted sm:text-base">{tool.description}</p>
               </div>
-              
-              <div className="flex gap-3">
+               
+              <div className="flex flex-wrap gap-2 sm:gap-3">
                 <a 
                   href={primaryUrl} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 rounded-xl bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary/90"
+                  className="flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-brand-primary px-3 py-2 text-sm font-medium text-white hover:bg-brand-primary/90 sm:w-auto sm:px-4"
                 >
                   <ExternalLink className="h-4 w-4" />
                   {primaryLabel}
@@ -333,20 +333,24 @@ export default function ToolDetailsPage() {
                     href={tool.websiteUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 rounded-xl border ui-border bg-brand-primary/10 px-4 py-2 text-sm font-medium hover:bg-brand-primary/15"
+                    className="flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border ui-border bg-brand-primary/10 px-3 py-2 text-sm font-medium hover:bg-brand-primary/15 sm:w-auto sm:px-4"
                   >
                     Official Site
                   </a>
                 )}
                 <button 
                   onClick={handleBookmark}
-                  className={`flex items-center gap-2 rounded-xl border ui-border px-4 py-2 text-sm font-medium hover:bg-brand-primary/15 ${
+                  className={`inline-flex h-10 w-10 items-center justify-center rounded-xl border ui-border text-sm font-medium hover:bg-brand-primary/15 ${
                     isBookmarked ? 'bg-brand-primary/20 text-brand-primary' : 'bg-brand-primary/10'
                   }`}
+                  aria-label={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
                 >
                   <Bookmark className={`h-4 w-4 ${isBookmarked ? 'fill-current' : ''}`} />
                 </button>
-                <button className="flex items-center gap-2 rounded-xl border ui-border bg-brand-primary/10 px-4 py-2 text-sm font-medium hover:bg-brand-primary/15">
+                <button
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border ui-border bg-brand-primary/10 text-sm font-medium hover:bg-brand-primary/15"
+                  aria-label="Share tool"
+                >
                   <Share2 className="h-4 w-4" />
                 </button>
               </div>
@@ -378,12 +382,12 @@ export default function ToolDetailsPage() {
 
       {/* Tabs */}
       <div className="border-b ui-border">
-        <div className="flex gap-8">
+        <div className="-mb-px flex gap-2 overflow-x-auto sm:gap-8">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`border-b-2 py-4 text-sm font-medium transition ${
+              className={`whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium transition sm:py-4 ${
                 activeTab === tab.id
                   ? 'border-brand-primary text-brand-text'
                   : 'border-transparent text-brand-muted hover:text-brand-text'
@@ -397,14 +401,14 @@ export default function ToolDetailsPage() {
 
       {/* Tab Content */}
       {activeTab === 'overview' && (
-        <div className="grid gap-8 lg:grid-cols-3">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="ui-card p-6">
+        <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
+          <div className="space-y-6 lg:col-span-2">
+            <div className="ui-card p-4 sm:p-6">
               <h2 className="text-xl font-semibold">Overview</h2>
               {hasStructuredSections ? (
                 <div className="mt-4 space-y-6">
                   {tool.overview && (
-                    <p className="text-brand-muted whitespace-pre-line">{tool.overview}</p>
+                    <p className="whitespace-pre-line text-brand-muted">{tool.overview}</p>
                   )}
 
                   {tool.features.length > 0 && (
@@ -451,7 +455,7 @@ export default function ToolDetailsPage() {
                   {tool.pricingDetails && (
                     <section>
                       <h3 className="mb-2 text-base font-semibold">Pricing Details</h3>
-                      <p className="text-brand-muted whitespace-pre-line">{tool.pricingDetails}</p>
+                      <p className="whitespace-pre-line text-brand-muted">{tool.pricingDetails}</p>
                     </section>
                   )}
 
@@ -483,12 +487,12 @@ export default function ToolDetailsPage() {
                   {tool.conclusion && (
                     <section>
                       <h3 className="mb-2 text-base font-semibold">Conclusion</h3>
-                      <p className="text-brand-muted whitespace-pre-line">{tool.conclusion}</p>
+                      <p className="whitespace-pre-line text-brand-muted">{tool.conclusion}</p>
                     </section>
                   )}
                 </div>
               ) : (
-                <p className="mt-4 text-brand-muted whitespace-pre-line">
+                <p className="mt-4 whitespace-pre-line text-brand-muted">
                   {tool.longDescription || tool.description}
                 </p>
               )}
@@ -496,23 +500,23 @@ export default function ToolDetailsPage() {
           </div>
 
           <div className="space-y-6">
-            <div className="ui-card p-6">
+            <div className="ui-card p-4 sm:p-6">
               <h3 className="font-semibold">Quick Info</h3>
               <div className="mt-4 space-y-4">
-                <div className="flex justify-between">
+                <div className="flex items-start justify-between gap-3">
                   <span className="text-brand-muted">Category</span>
-                  <Link href={`/tools?category=${tool.category.slug}`} className="text-brand-primary hover:underline">
+                  <Link href={`/tools?category=${tool.category.slug}`} className="text-right text-brand-primary hover:underline">
                     {tool.category.name}
                   </Link>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex items-start justify-between gap-3">
                   <span className="text-brand-muted">Pricing</span>
-                  <span>{formatPricing(tool.pricingModel)}</span>
+                  <span className="text-right">{formatPricing(tool.pricingModel)}</span>
                 </div>
                 {tool.priceRange && (
-                  <div className="flex justify-between">
+                  <div className="flex items-start justify-between gap-3">
                     <span className="text-brand-muted">Price Range</span>
-                    <span>{tool.priceRange}</span>
+                    <span className="text-right">{tool.priceRange}</span>
                   </div>
                 )}
                 <div className="flex justify-between gap-3">
@@ -521,7 +525,7 @@ export default function ToolDetailsPage() {
                     href={tool.websiteUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="truncate text-brand-primary hover:underline"
+                    className="max-w-[60%] truncate text-right text-brand-primary hover:underline"
                   >
                     Open
                   </a>
@@ -533,7 +537,7 @@ export default function ToolDetailsPage() {
                       href={tool.affiliateUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="truncate text-brand-primary hover:underline"
+                      className="max-w-[60%] truncate text-right text-brand-primary hover:underline"
                     >
                       Open
                     </a>
@@ -541,7 +545,7 @@ export default function ToolDetailsPage() {
                     <span className="text-brand-muted">Not available</span>
                   )}
                 </div>
-                <div className="flex justify-between">
+                <div className="flex items-start justify-between gap-3">
                   <span className="text-brand-muted">Views</span>
                   <span>{tool.views}</span>
                 </div>
@@ -555,12 +559,12 @@ export default function ToolDetailsPage() {
         <div className="space-y-6">
           {/* Add Review Form */}
           {user ? (
-            <div className="ui-card p-6">
+            <div className="ui-card p-4 sm:p-6">
               <h2 className="text-xl font-semibold">Write a Review</h2>
               <form onSubmit={handleSubmitReview} className="mt-4 space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Rating</label>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
                         key={star}
@@ -607,7 +611,7 @@ export default function ToolDetailsPage() {
               </form>
             </div>
           ) : (
-            <div className="ui-card p-6">
+            <div className="ui-card p-4 sm:p-6">
               <p className="text-brand-muted">
                 <Link href="/login" className="text-brand-primary hover:underline">Sign in</Link> to write a review.
               </p>
@@ -615,19 +619,19 @@ export default function ToolDetailsPage() {
           )}
 
           {/* Reviews List */}
-          <div className="ui-card p-6">
+          <div className="ui-card p-4 sm:p-6">
             <h2 className="text-xl font-semibold">User Reviews</h2>
             {tool.reviews.length > 0 ? (
               <div className="mt-6 space-y-6">
                 {tool.reviews.map((review) => (
                   <div key={review.id} className="border-b ui-border pb-6 last:border-0">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex min-w-0 items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-primary/20">
                           {review.user.name?.charAt(0) || 'U'}
                         </div>
-                        <div>
-                          <p className="font-medium">{review.user.name || 'Anonymous'}</p>
+                        <div className="min-w-0">
+                          <p className="truncate font-medium">{review.user.name || 'Anonymous'}</p>
                           <div className="flex items-center gap-1">
                             {[1, 2, 3, 4, 5].map((star) => (
                               <Star
@@ -640,7 +644,7 @@ export default function ToolDetailsPage() {
                           </div>
                         </div>
                       </div>
-                      <span className="text-sm text-brand-muted">
+                      <span className="text-xs text-brand-muted sm:text-sm">
                         {new Date(review.createdAt).toLocaleDateString()}
                       </span>
                     </div>
@@ -659,7 +663,7 @@ export default function ToolDetailsPage() {
       )}
 
       {activeTab === 'alternatives' && (
-        <div className="ui-card p-6">
+        <div className="ui-card p-4 sm:p-6">
           <h2 className="text-xl font-semibold">Similar Tools</h2>
           {similarTools.length > 0 ? (
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
