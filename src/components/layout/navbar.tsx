@@ -217,7 +217,7 @@ export function Navbar() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search tools, categories..."
-                  className="ui-input w-full py-3 pl-12 pr-4"
+                  className="ui-input ui-input-icon-lg w-full py-3 pr-4"
                   autoFocus
                 />
               </form>
@@ -282,3 +282,4 @@ export function Navbar() {
     </header>
   );
 }
+

@@ -97,7 +97,7 @@ export default function LoginPage() {
                 {...register('email')}
                 type="email"
                 placeholder="you@example.com"
-                className="ui-input w-full py-2.5 pl-10 pr-4"
+                className="ui-input ui-input-icon w-full py-2.5 pr-4"
               />
             </div>
             {errors.email && (
@@ -121,7 +121,7 @@ export default function LoginPage() {
                 {...register('password')}
                 type="password"
                 placeholder="Enter your password"
-                className="ui-input w-full py-2.5 pl-10 pr-4"
+                className="ui-input ui-input-icon w-full py-2.5 pr-4"
               />
             </div>
             {errors.password && (
@@ -215,4 +215,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
 

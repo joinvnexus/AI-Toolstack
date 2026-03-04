@@ -154,7 +154,7 @@ export default function AdminUsersPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search users by email..."
-            className="ui-input w-full py-2 pl-10 pr-4"
+            className="ui-input ui-input-icon w-full py-2 pr-4"
           />
         </div>
         <select
@@ -275,4 +275,5 @@ export default function AdminUsersPage() {
     </div>
   );
 }
+
 

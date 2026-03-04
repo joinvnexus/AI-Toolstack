@@ -107,7 +107,7 @@ export default function SignupPage() {
                 {...register('name')}
                 type="text"
                 placeholder="John Doe"
-                className="ui-input w-full py-2.5 pl-10 pr-4"
+                className="ui-input ui-input-icon w-full py-2.5 pr-4"
               />
             </div>
             {errors.name && (
@@ -123,7 +123,7 @@ export default function SignupPage() {
                 {...register('email')}
                 type="email"
                 placeholder="you@example.com"
-                className="ui-input w-full py-2.5 pl-10 pr-4"
+                className="ui-input ui-input-icon w-full py-2.5 pr-4"
               />
             </div>
             {errors.email && (
@@ -139,7 +139,7 @@ export default function SignupPage() {
                 {...register('password')}
                 type="password"
                 placeholder="Create a password"
-                className="ui-input w-full py-2.5 pl-10 pr-4"
+                className="ui-input ui-input-icon w-full py-2.5 pr-4"
               />
             </div>
             {errors.password && (
@@ -155,7 +155,7 @@ export default function SignupPage() {
                 {...register('confirmPassword')}
                 type="password"
                 placeholder="Confirm your password"
-                className="ui-input w-full py-2.5 pl-10 pr-4"
+                className="ui-input ui-input-icon w-full py-2.5 pr-4"
               />
             </div>
             {errors.confirmPassword && (
@@ -249,4 +249,5 @@ export default function SignupPage() {
     </div>
   );
 }
+
 

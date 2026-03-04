@@ -95,7 +95,7 @@ export default function ResetPasswordPage() {
                 {...register('password')}
                 type="password"
                 placeholder="Create a new password"
-                className="ui-input w-full py-2.5 pl-10 pr-4"
+                className="ui-input ui-input-icon w-full py-2.5 pr-4"
               />
             </div>
             {errors.password && (
@@ -111,7 +111,7 @@ export default function ResetPasswordPage() {
                 {...register('confirmPassword')}
                 type="password"
                 placeholder="Confirm your new password"
-                className="ui-input w-full py-2.5 pl-10 pr-4"
+                className="ui-input ui-input-icon w-full py-2.5 pr-4"
               />
             </div>
             {errors.confirmPassword && (
@@ -135,4 +135,5 @@ export default function ResetPasswordPage() {
     </div>
   );
 }
+
 

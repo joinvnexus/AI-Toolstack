@@ -146,6 +146,14 @@ select {
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-primary) 20%, transparent);
   }
 
+  .ui-input-icon {
+    padding-left: 2.5rem !important;
+  }
+
+  .ui-input-icon-lg {
+    padding-left: 3rem !important;
+  }
+
   .ui-ring:hover {
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-brand-primary) 20%, transparent);
   }

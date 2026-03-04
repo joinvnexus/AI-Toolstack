@@ -248,7 +248,7 @@ export default function AdminCategoriesPage() {
           placeholder="Search categories..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="ui-input w-full py-2 pl-10 pr-4"
+          className="ui-input ui-input-icon w-full py-2 pr-4"
         />
       </div>
 
@@ -306,4 +306,5 @@ export default function AdminCategoriesPage() {
     </div>
   );
 }
+
 

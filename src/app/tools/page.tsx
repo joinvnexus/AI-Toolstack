@@ -205,7 +205,7 @@ function ToolsPageContent() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search tools..."
-                  className="ui-input w-full py-2.5 pl-10 pr-4"
+                  className="ui-input ui-input-icon w-full py-2.5 pr-4"
                 />
               </div>
             </form>
@@ -302,4 +302,5 @@ export default function ToolsPage() {
     </Suspense>
   );
 }
+
 
