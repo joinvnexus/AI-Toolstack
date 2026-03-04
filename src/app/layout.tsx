@@ -3,6 +3,20 @@ import './globals.css';
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
 import { siteConfig } from '@/lib/constants/site';
+import { Plus_Jakarta_Sans, Space_Grotesk } from 'next/font/google';
+
+const fontSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-sans',
+  display: 'swap',
+});
+
+const fontDisplay = Space_Grotesk({
+  subsets: ['latin'],
+  variable: '--font-display',
+  weight: ['500', '600', '700'],
+  display: 'swap',
+});
 
 const themeScript = `
   (function () {
@@ -30,7 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className="min-h-screen">
+      <body className={`${fontSans.variable} ${fontDisplay.variable} min-h-screen`}>
         <Navbar />
         <main className="container-shell py-8 md:py-10">{children}</main>
         <Footer />

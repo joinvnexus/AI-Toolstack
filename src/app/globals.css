@@ -76,11 +76,27 @@ html {
 body {
   @apply antialiased;
   min-height: 100vh;
+  font-family: var(--font-sans), "Segoe UI", "Inter", sans-serif;
   background:
     radial-gradient(circle at 10% 10%, var(--bg-glow-a), transparent 36%),
     radial-gradient(circle at 90% 0%, var(--bg-glow-b), transparent 34%),
     var(--color-brand-background);
   color: var(--color-brand-text);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.section-title,
+.font-heading {
+  font-family: var(--font-display), "Segoe UI", sans-serif;
+}
+
+.font-content {
+  font-family: var(--font-sans), "Segoe UI", "Inter", sans-serif;
 }
 
 ::selection {
