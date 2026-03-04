@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
-import { useParams } from 'next/navigation';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Calendar, Clock, Loader2, ArrowLeft } from 'lucide-react';
+import { Calendar, Clock, Loader2, ArrowLeft, Link2, Share2 } from 'lucide-react';
 
 type BlogPost = {
   id: string;
@@ -37,13 +37,36 @@ type RelatedPost = {
   }>;
 };
 
-const renderRichContent = (content: string): ReactNode[] => {
+type TocItem = {
+  id: string;
+  text: string;
+  level: 2 | 3;
+};
+
+const toSlug = (value: string): string =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+const parseContent = (content: string): { elements: ReactNode[]; toc: TocItem[] } => {
   const lines = content.split('\n');
   const elements: ReactNode[] = [];
   const listItems: string[] = [];
   const codeLines: string[] = [];
+  const toc: TocItem[] = [];
+  const usedIds = new Map<string, number>();
   let inCodeBlock = false;
   let key = 0;
+
+  const nextHeadingId = (title: string): string => {
+    const base = toSlug(title) || `section-${key}`;
+    const count = (usedIds.get(base) || 0) + 1;
+    usedIds.set(base, count);
+    return count === 1 ? base : `${base}-${count}`;
+  };
 
   const flushList = () => {
     if (listItems.length === 0) return;
@@ -76,9 +99,7 @@ const renderRichContent = (content: string): ReactNode[] => {
 
     if (trimmed.startsWith('```')) {
       flushList();
-      if (inCodeBlock) {
-        flushCodeBlock();
-      }
+      if (inCodeBlock) flushCodeBlock();
       inCodeBlock = !inCodeBlock;
       continue;
     }
@@ -96,32 +117,38 @@ const renderRichContent = (content: string): ReactNode[] => {
 
     flushList();
 
-    if (!trimmed) {
-      continue;
-    }
+    if (!trimmed) continue;
 
     if (trimmed.startsWith('### ')) {
+      const text = trimmed.replace(/^###\s+/, '');
+      const id = nextHeadingId(text);
+      toc.push({ id, text, level: 3 });
       elements.push(
-        <h3 key={`h3-${key++}`} className="mt-6 text-xl font-semibold text-brand-text">
-          {trimmed.replace(/^###\s+/, '')}
+        <h3 id={id} key={`h3-${key++}`} className="mt-6 scroll-mt-24 text-xl font-semibold text-brand-text">
+          {text}
         </h3>
       );
       continue;
     }
 
     if (trimmed.startsWith('## ')) {
+      const text = trimmed.replace(/^##\s+/, '');
+      const id = nextHeadingId(text);
+      toc.push({ id, text, level: 2 });
       elements.push(
-        <h2 key={`h2-${key++}`} className="mt-8 text-2xl font-semibold text-brand-text">
-          {trimmed.replace(/^##\s+/, '')}
+        <h2 id={id} key={`h2-${key++}`} className="mt-8 scroll-mt-24 text-2xl font-semibold text-brand-text">
+          {text}
         </h2>
       );
       continue;
     }
 
     if (trimmed.startsWith('# ')) {
+      const text = trimmed.replace(/^#\s+/, '');
+      const id = nextHeadingId(text);
       elements.push(
-        <h1 key={`h1-${key++}`} className="mt-10 text-3xl font-bold text-brand-text">
-          {trimmed.replace(/^#\s+/, '')}
+        <h1 id={id} key={`h1-${key++}`} className="mt-10 scroll-mt-24 text-3xl font-bold text-brand-text">
+          {text}
         </h1>
       );
       continue;
@@ -149,16 +176,20 @@ const renderRichContent = (content: string): ReactNode[] => {
   flushList();
   flushCodeBlock();
 
-  return elements;
+  return { elements, toc };
 };
 
 export default function BlogPostPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const slugParam = params.slug;
   const slug = Array.isArray(slugParam) ? slugParam[0] : slugParam;
+  const isPreview = ['1', 'true', 'yes'].includes((searchParams.get('preview') || '').toLowerCase());
+
   const [post, setPost] = useState<BlogPost | null>(null);
   const [relatedPosts, setRelatedPosts] = useState<RelatedPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [shareNotice, setShareNotice] = useState('');
 
   useEffect(() => {
     const fetchPostAndRelated = async () => {
@@ -169,7 +200,8 @@ export default function BlogPostPage() {
 
       setLoading(true);
       try {
-        const postRes = await fetch(`/api/blog/${slug}`);
+        const previewQuery = isPreview ? '?preview=1' : '';
+        const postRes = await fetch(`/api/blog/${slug}${previewQuery}`);
 
         if (!postRes.ok) {
           setPost(null);
@@ -186,9 +218,7 @@ export default function BlogPostPage() {
           return;
         }
 
-        const relatedRes = await fetch(
-          `/api/blog?category=${encodeURIComponent(primaryCategory)}&limit=4`
-        );
+        const relatedRes = await fetch(`/api/blog?category=${encodeURIComponent(primaryCategory)}&limit=4`);
         if (!relatedRes.ok) {
           setRelatedPosts([]);
           return;
@@ -210,7 +240,59 @@ export default function BlogPostPage() {
     };
 
     fetchPostAndRelated();
-  }, [slug]);
+  }, [slug, isPreview]);
+
+  const parsed = useMemo(() => parseContent(post?.content || ''), [post?.content]);
+
+  const getPostUrl = () => {
+    if (!post) return '';
+    if (typeof window === 'undefined') return '';
+    const url = new URL(`/blog/${post.slug}`, window.location.origin);
+    if (isPreview) url.searchParams.set('preview', '1');
+    return url.toString();
+  };
+
+  const handleShare = async (channel: 'x' | 'linkedin' | 'copy' | 'native') => {
+    if (!post || typeof window === 'undefined') return;
+    const url = getPostUrl();
+    const text = post.title;
+
+    try {
+      if (channel === 'copy') {
+        await navigator.clipboard.writeText(url);
+        setShareNotice('Link copied');
+        return;
+      }
+
+      if (channel === 'x') {
+        const target = `https://x.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
+        window.open(target, '_blank', 'noopener,noreferrer');
+        return;
+      }
+
+      if (channel === 'linkedin') {
+        const target = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+        window.open(target, '_blank', 'noopener,noreferrer');
+        return;
+      }
+
+      if (navigator.share) {
+        await navigator.share({ title: text, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        setShareNotice('Link copied');
+      }
+    } catch (error) {
+      console.error('Share failed:', error);
+      setShareNotice('Share failed');
+    }
+  };
+
+  useEffect(() => {
+    if (!shareNotice) return;
+    const timer = setTimeout(() => setShareNotice(''), 1800);
+    return () => clearTimeout(timer);
+  }, [shareNotice]);
 
   if (loading) {
     return (
@@ -234,13 +316,16 @@ export default function BlogPostPage() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <Link
-        href="/blog"
-        className="mb-6 inline-flex items-center gap-2 text-sm text-brand-muted hover:text-brand-text"
-      >
+      <Link href="/blog" className="mb-6 inline-flex items-center gap-2 text-sm text-brand-muted hover:text-brand-text">
         <ArrowLeft className="h-4 w-4" />
         Back to Blog
       </Link>
+
+      {isPreview && (
+        <div className="mb-4 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-2 text-sm text-yellow-300">
+          Preview Mode: this draft is visible only to admins.
+        </div>
+      )}
 
       <article>
         <header className="mb-8">
@@ -288,27 +373,62 @@ export default function BlogPostPage() {
           </div>
         </header>
 
+        {parsed.toc.length > 0 && (
+          <aside className="ui-card mb-8 p-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-muted">Table of Contents</h2>
+            <div className="mt-3 space-y-1">
+              {parsed.toc.map((item) => (
+                <a
+                  key={item.id}
+                  href={`#${item.id}`}
+                  className={`block text-sm text-brand-muted hover:text-brand-text ${item.level === 3 ? 'pl-4' : ''}`}
+                >
+                  {item.text}
+                </a>
+              ))}
+            </div>
+          </aside>
+        )}
+
         {post.featuredImage && (
           <div className="mb-8 overflow-hidden rounded-2xl">
             <img src={post.featuredImage} alt={post.title} className="w-full object-cover" />
           </div>
         )}
 
-        <div className="space-y-4">{renderRichContent(post.content)}</div>
+        <div className="space-y-4">{parsed.elements}</div>
 
         <div className="mt-12 border-t ui-border pt-8">
           <p className="font-medium">Share this article</p>
-          <div className="mt-4 flex gap-4">
-            <button className="rounded-lg border ui-border bg-brand-primary/10 px-4 py-2 text-sm hover:bg-brand-primary/15">
-              Twitter
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button
+              onClick={() => handleShare('x')}
+              className="rounded-lg border ui-border bg-brand-primary/10 px-4 py-2 text-sm hover:bg-brand-primary/15"
+            >
+              X
             </button>
-            <button className="rounded-lg border ui-border bg-brand-primary/10 px-4 py-2 text-sm hover:bg-brand-primary/15">
+            <button
+              onClick={() => handleShare('linkedin')}
+              className="rounded-lg border ui-border bg-brand-primary/10 px-4 py-2 text-sm hover:bg-brand-primary/15"
+            >
               LinkedIn
             </button>
-            <button className="rounded-lg border ui-border bg-brand-primary/10 px-4 py-2 text-sm hover:bg-brand-primary/15">
+            <button
+              onClick={() => handleShare('copy')}
+              className="inline-flex items-center gap-1 rounded-lg border ui-border bg-brand-primary/10 px-4 py-2 text-sm hover:bg-brand-primary/15"
+            >
+              <Link2 className="h-4 w-4" />
               Copy Link
             </button>
+            <button
+              onClick={() => handleShare('native')}
+              className="inline-flex items-center gap-1 rounded-lg border ui-border bg-brand-primary/10 px-4 py-2 text-sm hover:bg-brand-primary/15"
+            >
+              <Share2 className="h-4 w-4" />
+              Share
+            </button>
           </div>
+          {shareNotice && <p className="mt-3 text-xs text-brand-muted">{shareNotice}</p>}
         </div>
       </article>
 
@@ -329,9 +449,7 @@ export default function BlogPostPage() {
                 <p className="mt-2 line-clamp-2 text-sm text-brand-muted">
                   {related.excerpt || 'Read this article for more details.'}
                 </p>
-                <p className="mt-3 text-xs text-brand-muted">
-                  {related.readTime || 5} min read
-                </p>
+                <p className="mt-3 text-xs text-brand-muted">{related.readTime || 5} min read</p>
               </Link>
             ))}
           </div>
@@ -340,4 +458,3 @@ export default function BlogPostPage() {
     </div>
   );
 }
-
