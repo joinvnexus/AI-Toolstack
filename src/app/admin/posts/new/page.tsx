@@ -219,7 +219,7 @@ export default function NewPostPage() {
               {...register('content')}
               placeholder="Write your post content here... (Markdown supported)"
               rows={15}
-              className="ui-input w-full font-mono"
+              className="ui-input w-full"
             />
             {errors.content && <p className="mt-1 text-sm text-red-500">{errors.content.message}</p>}
           </div>

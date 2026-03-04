@@ -216,7 +216,7 @@ export default function AdminSettingsPage() {
         <p className="mb-4 text-sm text-brand-muted">
           You can also run this SQL in Supabase SQL Editor to make a user admin:
         </p>
-        <div className="rounded-lg bg-black/50 p-4 font-mono text-sm text-white">
+        <div className="rounded-lg bg-black/50 p-4 text-sm text-white">
           <p className="text-green-400">-- Replace with user's email</p>
           <p>update auth.users</p>
           <p>set raw_user_meta_data = jsonb_set(raw_user_meta_data, &apos;{"{role}"}&apos;, &apos;"ADMIN"&apos;)</p>
