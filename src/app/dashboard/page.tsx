@@ -138,8 +138,8 @@ function DashboardPageContent() {
 
   return (
     <div className="space-y-8">
-      <div className="rounded-2xl border border-white/10 bg-brand-surface p-6">
-        <div className="flex items-center gap-4">
+      <div className="ui-card p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-primary">
             {user.name?.charAt(0) || user.email.charAt(0).toUpperCase()}
           </div>
@@ -149,7 +149,7 @@ function DashboardPageContent() {
           </div>
           <button
             onClick={handleSignOut}
-            className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm hover:bg-white/10"
+            className="flex w-full items-center justify-center gap-2 rounded-lg border ui-border px-4 py-2 text-sm text-brand-muted hover:bg-brand-primary/10 hover:text-brand-text sm:w-auto"
           >
             <LogOut className="h-4 w-4" />
             Sign out
@@ -157,16 +157,16 @@ function DashboardPageContent() {
         </div>
       </div>
 
-      <div className="border-b border-white/10">
-        <div className="flex gap-6">
+      <div className="border-b ui-border">
+        <div className="flex gap-2 overflow-x-auto pb-1">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => handleTabChange(tab.id)}
-              className={`flex items-center gap-2 border-b-2 py-3 text-sm font-medium transition ${
+              className={`flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-2 py-3 text-sm font-medium transition ${
                 activeTab === tab.id
-                  ? 'border-brand-primary text-white'
-                  : 'border-transparent text-brand-muted hover:text-white'
+                  ? 'border-brand-primary text-brand-text'
+                  : 'border-transparent text-brand-muted hover:text-brand-text'
               }`}
             >
               <tab.icon className="h-4 w-4" />
@@ -185,7 +185,7 @@ function DashboardPageContent() {
                 <Link
                   key={bookmark.id}
                   href={`/tools/${bookmark.tool.slug}`}
-                  className="rounded-2xl border border-white/10 bg-brand-surface p-5 transition hover:border-brand-primary/60"
+                  className="ui-card p-5 transition hover:border-brand-primary/60"
                 >
                   <h3 className="font-medium">{bookmark.tool.name}</h3>
                   <p className="mt-1 line-clamp-2 text-sm text-brand-muted">{bookmark.tool.description}</p>
@@ -200,7 +200,7 @@ function DashboardPageContent() {
               ))}
             </div>
           ) : (
-            <div className="rounded-2xl border border-white/10 bg-brand-surface p-8 text-center">
+            <div className="ui-card p-8 text-center">
               <Bookmark className="mx-auto h-8 w-8 text-brand-muted" />
               <p className="mt-4 text-brand-muted">No bookmarks yet. Start saving your favorite tools!</p>
               <Link href="/tools" className="mt-4 inline-block text-brand-primary hover:underline">
@@ -217,7 +217,7 @@ function DashboardPageContent() {
           {reviews.length > 0 ? (
             <div className="space-y-4">
               {reviews.map((review) => (
-                <div key={review.id} className="rounded-2xl border border-white/10 bg-brand-surface p-5">
+                <div key={review.id} className="ui-card p-5">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <Link href={`/tools/${review.tool.slug}`} className="font-medium hover:text-brand-primary">
                       {review.tool.name}
@@ -234,7 +234,7 @@ function DashboardPageContent() {
                       <Star
                         key={star}
                         className={`h-4 w-4 ${
-                          star <= review.rating ? 'fill-yellow-500 text-yellow-500' : 'text-gray-600'
+                          star <= review.rating ? 'fill-yellow-500 text-yellow-500' : 'text-brand-muted/40'
                         }`}
                       />
                     ))}
@@ -245,7 +245,7 @@ function DashboardPageContent() {
               ))}
             </div>
           ) : (
-            <div className="rounded-2xl border border-white/10 bg-brand-surface p-8 text-center">
+            <div className="ui-card p-8 text-center">
               <Star className="mx-auto h-8 w-8 text-brand-muted" />
               <p className="mt-4 text-brand-muted">You have not written any reviews yet.</p>
               <Link href="/tools" className="mt-4 inline-block text-brand-primary hover:underline">
@@ -257,7 +257,7 @@ function DashboardPageContent() {
       )}
 
       {activeTab === 'settings' && (
-        <div className="rounded-2xl border border-white/10 bg-brand-surface p-6">
+        <div className="ui-card p-6">
           <h2 className="mb-4 text-lg font-semibold">Account Settings</h2>
           <form className="max-w-md space-y-4">
             <div>
@@ -265,7 +265,7 @@ function DashboardPageContent() {
               <input
                 type="text"
                 defaultValue={user.name || ''}
-                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary"
+                className="ui-input w-full"
               />
             </div>
             <div>
@@ -274,7 +274,7 @@ function DashboardPageContent() {
                 type="email"
                 defaultValue={user.email}
                 disabled
-                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm opacity-50 outline-none"
+                className="ui-input w-full cursor-not-allowed opacity-60"
               />
             </div>
             <button

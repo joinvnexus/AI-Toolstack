@@ -13,7 +13,7 @@ const twitterUrl = `https://x.com/${twitterHandle}`;
 
 export function Footer() {
   return (
-    <footer className="mt-16 border-t border-white/10 bg-brand-surface/30">
+    <footer className="mt-16 border-t ui-border bg-brand-surface/50 backdrop-blur-sm">
       <div className="container-shell py-10">
         <div className="grid gap-8 md:grid-cols-4">
           <div className="md:col-span-2">
@@ -48,20 +48,20 @@ export function Footer() {
           <div>
             <p className="text-sm font-semibold">Coming Soon</p>
             <div className="mt-3 space-y-2 text-sm text-brand-muted">
-              <p className="flex items-center justify-between rounded-md border border-white/10 px-2 py-1">
+              <p className="flex items-center justify-between rounded-md border ui-border px-2 py-1">
                 Tool Collections <span className="text-[10px] uppercase tracking-wide text-brand-primary">Soon</span>
               </p>
-              <p className="flex items-center justify-between rounded-md border border-white/10 px-2 py-1">
+              <p className="flex items-center justify-between rounded-md border ui-border px-2 py-1">
                 Compare Workspace <span className="text-[10px] uppercase tracking-wide text-brand-primary">Soon</span>
               </p>
-              <p className="flex items-center justify-between rounded-md border border-white/10 px-2 py-1">
+              <p className="flex items-center justify-between rounded-md border ui-border px-2 py-1">
                 Weekly Digest <span className="text-[10px] uppercase tracking-wide text-brand-primary">Soon</span>
               </p>
             </div>
           </div>
         </div>
 
-        <div className="mt-8 flex flex-col gap-2 border-t border-white/10 pt-5 text-xs text-brand-muted md:flex-row md:items-center md:justify-between">
+        <div className="mt-8 flex flex-col gap-2 border-t ui-border pt-5 text-xs text-brand-muted md:flex-row md:items-center md:justify-between">
           <p>&copy; {new Date().getFullYear()} {siteConfig.name}. All rights reserved.</p>
           <p>Built for discovering and comparing AI tools.</p>
         </div>

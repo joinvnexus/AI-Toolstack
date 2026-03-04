@@ -2,10 +2,10 @@ import Link from 'next/link';
 
 export function BlogCard({ post }: { post: { slug: string; title: string; excerpt: string; readTime: string; date: string; category: string } }) {
   return (
-    <article className="rounded-2xl border border-white/10 bg-brand-surface p-6">
+    <article className="ui-card p-6">
       <div className="flex items-center justify-between gap-3">
         <p className="text-xs text-brand-muted">{post.date}</p>
-        <span className="rounded-full border border-white/10 px-2 py-1 text-xs text-brand-muted">{post.category}</span>
+        <span className="rounded-full border ui-border px-2 py-1 text-xs text-brand-muted">{post.category}</span>
       </div>
       <h3 className="mt-2 text-xl font-semibold">{post.title}</h3>
       <p className="mt-2 text-sm text-brand-muted">{post.excerpt}</p>

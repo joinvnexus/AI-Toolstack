@@ -6,12 +6,12 @@ import { unstable_noStore as noStore } from 'next/cache';
 import prisma from '@/lib/prisma';
 
 const categoryIcons: Record<string, string> = {
-  productivity: '⚡',
-  'developer-tools': '💻',
-  design: '🎨',
-  marketing: '📈',
-  writing: '✍️',
-  video: '🎬',
+  productivity: '\u26a1',
+  'developer-tools': '\ud83d\udcbb',
+  design: '\ud83c\udfa8',
+  marketing: '\ud83d\udcc8',
+  writing: '\u270d\ufe0f',
+  video: '\ud83c\udfac'
 };
 
 const formatNumber = (value: number) => new Intl.NumberFormat('en-US').format(value);
@@ -20,7 +20,7 @@ const formatDate = (date: Date) =>
   new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'short',
-    day: 'numeric',
+    day: 'numeric'
   }).format(date);
 
 const getExcerpt = (excerpt: string | null, content: string) => {
@@ -105,15 +105,7 @@ type StatItem = {
 export default async function HomePage() {
   noStore();
 
-  const [
-    categoryRows,
-    toolRows,
-    postRows,
-    totalTools,
-    totalUsers,
-    totalReviews,
-    totalPosts,
-  ] = await Promise.all([
+  const [categoryRows, toolRows, postRows, totalTools, totalUsers, totalReviews, totalPosts] = await Promise.all([
     prisma.category.findMany({
       orderBy: [{ toolCount: 'desc' }, { name: 'asc' }],
       take: 6,
@@ -121,8 +113,8 @@ export default async function HomePage() {
         name: true,
         slug: true,
         icon: true,
-        toolCount: true,
-      },
+        toolCount: true
+      }
     }),
     prisma.tool.findMany({
       take: 3,
@@ -130,10 +122,10 @@ export default async function HomePage() {
       include: {
         category: {
           select: {
-            name: true,
-          },
-        },
-      },
+            name: true
+          }
+        }
+      }
     }),
     prisma.blogPost.findMany({
       where: { published: true },
@@ -142,22 +134,22 @@ export default async function HomePage() {
       include: {
         categories: {
           select: {
-            name: true,
-          },
-        },
-      },
+            name: true
+          }
+        }
+      }
     }),
     prisma.tool.count(),
     prisma.user.count(),
     prisma.review.count(),
-    prisma.blogPost.count({ where: { published: true } }),
+    prisma.blogPost.count({ where: { published: true } })
   ]);
 
   const categories: CategoryCardItem[] = categoryRows.map((category: CategoryRow) => ({
     name: category.name,
     slug: category.slug,
-    icon: category.icon || categoryIcons[category.slug] || '•',
-    toolCount: category.toolCount,
+    icon: category.icon || categoryIcons[category.slug] || '\u2022',
+    toolCount: category.toolCount
   }));
 
   const tools: ToolCardItem[] = toolRows.map((tool: ToolRow) => ({
@@ -172,7 +164,7 @@ export default async function HomePage() {
     rating: tool.rating,
     reviews: tool.reviewCount,
     websiteUrl: tool.websiteUrl,
-    logoUrl: tool.logoUrl,
+    logoUrl: tool.logoUrl
   }));
 
   const blogPosts: BlogCardItem[] = postRows.map((post: BlogRow) => ({
@@ -181,64 +173,64 @@ export default async function HomePage() {
     excerpt: getExcerpt(post.excerpt, post.content),
     readTime: `${post.readTime || 1} min read`,
     date: formatDate(post.publishedAt || post.createdAt),
-    category: post.categories[0]?.name || 'General',
+    category: post.categories[0]?.name || 'General'
   }));
 
   const stats: StatItem[] = [
     { label: 'Total Tools', value: formatNumber(totalTools) },
     { label: 'Users', value: formatNumber(totalUsers) },
     { label: 'Reviews', value: formatNumber(totalReviews) },
-    { label: 'Blog Posts', value: formatNumber(totalPosts) },
+    { label: 'Blog Posts', value: formatNumber(totalPosts) }
   ];
 
   return (
     <PageTransition>
-      <div className="space-y-16">
-        {/* Hero Section */}
-        <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-brand-primary/30 to-brand-accent/20 p-10">
-          <FadeIn>
-            <p className="text-sm text-brand-muted">Discover • Compare • Learn</p>
-          </FadeIn>
-          <FadeIn delay={0.1}>
-            <h1 className="mt-3 text-4xl font-bold leading-tight md:text-5xl">
-              Find the best AI tools for your next breakthrough.
-            </h1>
-          </FadeIn>
-          <FadeIn delay={0.2}>
-            <p className="mt-4 max-w-2xl text-brand-muted">
-              AI Toolstack is your one-stop AI tools directory and blog to discover trusted tools, authentic reviews, and practical guides.
-            </p>
-          </FadeIn>
-          <FadeIn delay={0.3}>
-            <form action="/tools" className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <input
-                name="q"
-                placeholder="Search tools, features, and categories..."
-                className="w-full rounded-full border border-white/20 bg-black/30 px-4 py-2 text-sm outline-none placeholder:text-brand-muted focus:border-brand-primary sm:max-w-xl"
-              />
-              <button className="rounded-full bg-white px-5 py-2 text-sm font-medium text-black hover:bg-gray-100 transition">
-                Search
-              </button>
-            </form>
-          </FadeIn>
+      <div className="space-y-14 md:space-y-16">
+        <section className="ui-card-soft relative overflow-hidden p-6 sm:p-8 md:p-10">
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/20 via-brand-accent/10 to-brand-secondary/10" />
+          <div className="relative">
+            <FadeIn>
+              <p className="text-sm text-brand-muted">Discover | Compare | Learn</p>
+            </FadeIn>
+            <FadeIn delay={0.1}>
+              <h1 className="mt-3 max-w-4xl text-3xl font-bold leading-tight sm:text-4xl md:text-5xl">
+                Find the best AI tools for your next breakthrough.
+              </h1>
+            </FadeIn>
+            <FadeIn delay={0.2}>
+              <p className="mt-4 max-w-2xl text-brand-muted">
+                AI Toolstack is your one-stop AI tools directory and blog to discover trusted tools, authentic
+                reviews, and practical guides.
+              </p>
+            </FadeIn>
+            <FadeIn delay={0.3}>
+              <form action="/tools" className="mt-6 flex flex-col gap-3 sm:flex-row">
+                <input
+                  name="q"
+                  placeholder="Search tools, features, and categories..."
+                  className="ui-input w-full sm:max-w-xl"
+                />
+                <button className="rounded-xl bg-brand-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-brand-primary/90">
+                  Search
+                </button>
+              </form>
+            </FadeIn>
+          </div>
         </section>
 
-        {/* Categories Section */}
         <section>
           <FadeIn>
-            <h2 className="mb-5 text-2xl font-semibold">Popular Categories</h2>
+            <h2 className="section-title mb-5">Popular Categories</h2>
           </FadeIn>
           <StaggerContainer className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {categories.map((category) => (
               <StaggerItem key={category.name}>
                 <Link
                   href={`/tools?category=${encodeURIComponent(category.slug)}`}
-                  className="group block rounded-2xl border border-white/10 bg-brand-surface p-5 transition hover:-translate-y-1 hover:border-brand-primary/60 hover:shadow-lg hover:shadow-brand-primary/10"
+                  className="ui-card group block p-5 transition hover:-translate-y-1 hover:border-brand-primary/60"
                 >
                   <p className="text-3xl">{category.icon}</p>
-                  <h3 className="mt-2 font-medium group-hover:text-brand-primary transition">
-                    {category.name}
-                  </h3>
+                  <h3 className="mt-2 font-medium transition group-hover:text-brand-primary">{category.name}</h3>
                   <p className="mt-1 text-sm text-brand-muted">{category.toolCount} tools</p>
                 </Link>
               </StaggerItem>
@@ -246,11 +238,10 @@ export default async function HomePage() {
           </StaggerContainer>
         </section>
 
-        {/* Featured Tools Section */}
         <section>
           <FadeIn>
-            <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-2xl font-semibold">Featured Tools</h2>
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <h2 className="section-title">Featured Tools</h2>
               <Link href="/tools" className="text-sm text-brand-primary hover:underline">
                 View all
               </Link>
@@ -265,13 +256,12 @@ export default async function HomePage() {
           </StaggerContainer>
         </section>
 
-        {/* Stats Section */}
         <section>
           <StaggerContainer className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {stats.map((item, index) => (
               <StaggerItem key={item.label}>
                 <FadeIn delay={index * 0.1}>
-                  <div className="rounded-2xl border border-white/10 bg-brand-surface p-5">
+                  <div className="ui-card p-5">
                     <p className="text-2xl font-semibold">{item.value}</p>
                     <p className="text-sm text-brand-muted">{item.label}</p>
                   </div>
@@ -281,10 +271,9 @@ export default async function HomePage() {
           </StaggerContainer>
         </section>
 
-        {/* Blog Posts Section */}
         <section>
           <FadeIn>
-            <h2 className="mb-5 text-2xl font-semibold">Latest Blog Posts</h2>
+            <h2 className="section-title mb-5">Latest Blog Posts</h2>
           </FadeIn>
           <StaggerContainer className="grid gap-4 md:grid-cols-2">
             {blogPosts.map((post) => (
