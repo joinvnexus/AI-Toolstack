@@ -1,9 +1,9 @@
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { ToolCard } from '@/components/tools/tool-card';
-import { Search, Filter, Loader2 } from 'lucide-react';
+import { Search, Filter, Loader2, X } from 'lucide-react';
 
 const pricingOptions = ['All', 'Free', 'Paid', 'Freemium'];
 const sortOptions = [
@@ -35,7 +35,6 @@ type Category = {
 };
 
 function ToolsPageContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   
   const [tools, setTools] = useState<Tool[]>([]);
@@ -48,6 +47,7 @@ function ToolsPageContent() {
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'rating');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
   const normalizedCategory = (() => {
     if (selectedCategory === 'All') return 'All';
@@ -110,6 +110,37 @@ function ToolsPageContent() {
     fetchTools();
   }, [search, normalizedCategory, selectedPricing, sortBy, page]);
 
+  useEffect(() => {
+    if (!isMobileFiltersOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsMobileFiltersOpen(false);
+      }
+    };
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [isMobileFiltersOpen]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(min-width: 1024px)');
+    const handleBreakpointChange = (event: MediaQueryListEvent) => {
+      if (event.matches) {
+        setIsMobileFiltersOpen(false);
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleBreakpointChange);
+    return () => mediaQuery.removeEventListener('change', handleBreakpointChange);
+  }, []);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
@@ -118,6 +149,13 @@ function ToolsPageContent() {
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
     setPage(1);
+    setIsMobileFiltersOpen(false);
+  };
+
+  const handlePricingChange = (pricing: string) => {
+    setSelectedPricing(pricing);
+    setPage(1);
+    setIsMobileFiltersOpen(false);
   };
 
   return (
@@ -127,15 +165,43 @@ function ToolsPageContent() {
           <h1 className="text-3xl font-bold">AI Tools Directory</h1>
           <p className="mt-1 text-brand-muted">Discover the best AI tools for your needs</p>
         </div>
+        <button
+          onClick={() => setIsMobileFiltersOpen(true)}
+          className="inline-flex min-h-10 items-center gap-2 self-start rounded-lg border ui-border bg-brand-surface px-3 py-2 text-sm font-medium lg:hidden"
+        >
+          <Filter className="h-4 w-4" />
+          Filters
+        </button>
       </div>
 
       <div className="flex flex-col gap-4 lg:flex-row">
+        {isMobileFiltersOpen && (
+          <button
+            aria-label="Close filters"
+            onClick={() => setIsMobileFiltersOpen(false)}
+            className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+          />
+        )}
+
         {/* Filters Sidebar */}
-        <aside className="w-full space-y-6 lg:w-64 lg:flex-shrink-0">
-          <div className="ui-card p-3 sm:p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <Filter className="h-4 w-4" />
-              <h3 className="font-medium">Filters</h3>
+        <aside
+          className={`fixed inset-y-0 right-0 z-50 w-[min(22rem,92vw)] overflow-y-auto p-3 transition-transform duration-200 lg:static lg:z-auto lg:w-64 lg:flex-shrink-0 lg:p-0 ${
+            isMobileFiltersOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'
+          }`}
+        >
+          <div className="ui-card h-full p-3 sm:p-5 lg:h-auto">
+            <div className="mb-4 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4" />
+                <h3 className="font-medium">Filters</h3>
+              </div>
+              <button
+                onClick={() => setIsMobileFiltersOpen(false)}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border ui-border bg-brand-surface lg:hidden"
+                aria-label="Close filters"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
             
             {/* Categories */}
@@ -175,10 +241,7 @@ function ToolsPageContent() {
                 {pricingOptions.map((pricing) => (
                   <button
                     key={pricing}
-                    onClick={() => {
-                      setSelectedPricing(pricing);
-                      setPage(1);
-                    }}
+                    onClick={() => handlePricingChange(pricing)}
                     className={`min-h-10 w-full rounded-lg px-3 py-2 text-sm text-left transition ${
                       selectedPricing === pricing
                         ? 'bg-brand-primary text-white'
