@@ -151,15 +151,15 @@ export default function AdminReviewsPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-xl border border-white/10 bg-brand-surface p-4">
+        <div className="ui-card p-4">
           <p className="text-sm text-brand-muted">Total Reviews</p>
           <p className="mt-2 text-2xl font-semibold">{reviews.length}</p>
         </div>
-        <div className="rounded-xl border border-white/10 bg-brand-surface p-4">
+        <div className="ui-card p-4">
           <p className="text-sm text-brand-muted">Average Rating</p>
           <p className="mt-2 text-2xl font-semibold">{averageRating.toFixed(1)}</p>
         </div>
-        <div className="rounded-xl border border-white/10 bg-brand-surface p-4">
+        <div className="ui-card p-4">
           <p className="text-sm text-brand-muted">Five-Star Reviews</p>
           <p className="mt-2 text-2xl font-semibold">{reviews.filter((r) => r.rating === 5).length}</p>
         </div>
@@ -173,13 +173,13 @@ export default function AdminReviewsPage() {
             placeholder="Search by content, user, or tool..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-white/10 bg-brand-surface py-2 pl-10 pr-4 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+            className="ui-input w-full py-2 pl-10 pr-4"
           />
         </div>
         <select
           value={ratingFilter}
           onChange={(e) => setRatingFilter(e.target.value as 'ALL' | '5' | '4' | '3' | '2' | '1')}
-          className="rounded-lg border border-white/10 bg-brand-surface px-4 py-2 text-sm outline-none focus:border-brand-primary"
+          className="rounded-lg border ui-border bg-brand-surface px-4 py-2 text-sm outline-none focus:border-brand-primary"
         >
           <option value="ALL">All ratings</option>
           <option value="5">5 stars</option>
@@ -200,11 +200,11 @@ export default function AdminReviewsPage() {
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-white/10 bg-brand-surface">
+      <div className="overflow-hidden rounded-xl border ui-border bg-brand-surface">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-white/10">
+              <tr className="border-b ui-border">
                 <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">Review</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">Tool</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">User</th>
@@ -216,7 +216,7 @@ export default function AdminReviewsPage() {
             <tbody>
               {filteredReviews.length > 0 ? (
                 filteredReviews.map((review) => (
-                  <tr key={review.id} className="border-b border-white/5 hover:bg-white/5">
+                  <tr key={review.id} className="border-b ui-border hover:bg-brand-primary/10">
                     <td className="px-4 py-3">
                       <p className="max-w-md text-sm">{review.content}</p>
                       <p className="mt-1 text-xs text-brand-muted">Helpful: {review.helpfulCount}</p>
@@ -243,7 +243,7 @@ export default function AdminReviewsPage() {
                       <div className="flex items-center justify-end gap-2">
                         <Link
                           href={`/tools/${review.tool.slug}`}
-                          className="rounded-lg p-2 text-brand-muted hover:bg-white/10 hover:text-white"
+                          className="rounded-lg p-2 text-brand-muted hover:bg-brand-primary/15 hover:text-brand-text"
                           title="View Tool"
                         >
                           <ExternalLink className="h-4 w-4" />
@@ -251,7 +251,7 @@ export default function AdminReviewsPage() {
                         <button
                           onClick={() => deleteReview(review)}
                           disabled={deletingId === review.id}
-                          className="rounded-lg p-2 text-brand-muted hover:bg-white/10 hover:text-red-500 disabled:opacity-50"
+                          className="rounded-lg p-2 text-brand-muted hover:bg-brand-primary/15 hover:text-red-500 disabled:opacity-50"
                           title="Delete Review"
                         >
                           {deletingId === review.id ? (
@@ -278,3 +278,4 @@ export default function AdminReviewsPage() {
     </div>
   );
 }
+

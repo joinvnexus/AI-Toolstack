@@ -72,7 +72,7 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-brand-surface p-8">
+      <div className="w-full max-w-md ui-card p-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold">Reset your password</h1>
           <p className="mt-2 text-sm text-brand-muted">
@@ -95,7 +95,7 @@ export default function ResetPasswordPage() {
                 {...register('password')}
                 type="password"
                 placeholder="Create a new password"
-                className="w-full rounded-lg border border-white/15 bg-black/20 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-brand-primary"
+                className="ui-input w-full py-2.5 pl-10 pr-4"
               />
             </div>
             {errors.password && (
@@ -111,7 +111,7 @@ export default function ResetPasswordPage() {
                 {...register('confirmPassword')}
                 type="password"
                 placeholder="Confirm your new password"
-                className="w-full rounded-lg border border-white/15 bg-black/20 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-brand-primary"
+                className="ui-input w-full py-2.5 pl-10 pr-4"
               />
             </div>
             {errors.confirmPassword && (
@@ -135,3 +135,4 @@ export default function ResetPasswordPage() {
     </div>
   );
 }
+

@@ -297,9 +297,9 @@ export default function ToolDetailsPage() {
   return (
     <div className="space-y-8">
       {/* Hero Section */}
-      <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-brand-surface to-brand-background p-8">
+      <div className="ui-card-soft p-8">
         <div className="flex flex-col gap-6 md:flex-row md:items-start">
-          <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-white/10 bg-white">
+          <div className="flex h-20 w-20 items-center justify-center rounded-2xl border ui-border bg-brand-surface">
             {tool.logoUrl ? (
               <img
                 src={tool.logoUrl}
@@ -333,20 +333,20 @@ export default function ToolDetailsPage() {
                     href={tool.websiteUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium hover:bg-white/10"
+                    className="flex items-center gap-2 rounded-xl border ui-border bg-brand-primary/10 px-4 py-2 text-sm font-medium hover:bg-brand-primary/15"
                   >
                     Official Site
                   </a>
                 )}
                 <button 
                   onClick={handleBookmark}
-                  className={`flex items-center gap-2 rounded-xl border border-white/10 px-4 py-2 text-sm font-medium hover:bg-white/10 ${
-                    isBookmarked ? 'bg-brand-primary/20 text-brand-primary' : 'bg-white/5'
+                  className={`flex items-center gap-2 rounded-xl border ui-border px-4 py-2 text-sm font-medium hover:bg-brand-primary/15 ${
+                    isBookmarked ? 'bg-brand-primary/20 text-brand-primary' : 'bg-brand-primary/10'
                   }`}
                 >
                   <Bookmark className={`h-4 w-4 ${isBookmarked ? 'fill-current' : ''}`} />
                 </button>
-                <button className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium hover:bg-white/10">
+                <button className="flex items-center gap-2 rounded-xl border ui-border bg-brand-primary/10 px-4 py-2 text-sm font-medium hover:bg-brand-primary/15">
                   <Share2 className="h-4 w-4" />
                 </button>
               </div>
@@ -369,7 +369,7 @@ export default function ToolDetailsPage() {
               <div className="flex items-center gap-2 text-sm text-brand-muted">
                 <DollarSign className="h-4 w-4" />
                 {formatPricing(tool.pricingModel)}
-                {tool.priceRange && ` • ${tool.priceRange}`}
+                {tool.priceRange && ` | ${tool.priceRange}`}
               </div>
             </div>
           </div>
@@ -377,7 +377,7 @@ export default function ToolDetailsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-white/10">
+      <div className="border-b ui-border">
         <div className="flex gap-8">
           {tabs.map((tab) => (
             <button
@@ -385,8 +385,8 @@ export default function ToolDetailsPage() {
               onClick={() => setActiveTab(tab.id)}
               className={`border-b-2 py-4 text-sm font-medium transition ${
                 activeTab === tab.id
-                  ? 'border-brand-primary text-white'
-                  : 'border-transparent text-brand-muted hover:text-white'
+                  ? 'border-brand-primary text-brand-text'
+                  : 'border-transparent text-brand-muted hover:text-brand-text'
               }`}
             >
               {tab.label}
@@ -399,7 +399,7 @@ export default function ToolDetailsPage() {
       {activeTab === 'overview' && (
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-6">
-            <div className="rounded-2xl border border-white/10 bg-brand-surface p-6">
+            <div className="ui-card p-6">
               <h2 className="text-xl font-semibold">Overview</h2>
               {hasStructuredSections ? (
                 <div className="mt-4 space-y-6">
@@ -496,7 +496,7 @@ export default function ToolDetailsPage() {
           </div>
 
           <div className="space-y-6">
-            <div className="rounded-2xl border border-white/10 bg-brand-surface p-6">
+            <div className="ui-card p-6">
               <h3 className="font-semibold">Quick Info</h3>
               <div className="mt-4 space-y-4">
                 <div className="flex justify-between">
@@ -555,7 +555,7 @@ export default function ToolDetailsPage() {
         <div className="space-y-6">
           {/* Add Review Form */}
           {user ? (
-            <div className="rounded-2xl border border-white/10 bg-brand-surface p-6">
+            <div className="ui-card p-6">
               <h2 className="text-xl font-semibold">Write a Review</h2>
               <form onSubmit={handleSubmitReview} className="mt-4 space-y-4">
                 <div>
@@ -572,7 +572,7 @@ export default function ToolDetailsPage() {
                           className={`h-6 w-6 transition ${
                             star <= reviewRating
                               ? 'text-yellow-500 fill-yellow-500'
-                              : 'text-gray-600 hover:text-gray-400'
+                              : 'text-brand-muted/40 hover:text-brand-muted'
                           }`}
                         />
                       </button>
@@ -586,7 +586,7 @@ export default function ToolDetailsPage() {
                     onChange={(e) => setReviewContent(e.target.value)}
                     placeholder="Share your experience with this tool..."
                     rows={4}
-                    className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+                    className="ui-input w-full"
                   />
                 </div>
                 {reviewError && (
@@ -607,7 +607,7 @@ export default function ToolDetailsPage() {
               </form>
             </div>
           ) : (
-            <div className="rounded-2xl border border-white/10 bg-brand-surface p-6">
+            <div className="ui-card p-6">
               <p className="text-brand-muted">
                 <Link href="/login" className="text-brand-primary hover:underline">Sign in</Link> to write a review.
               </p>
@@ -615,12 +615,12 @@ export default function ToolDetailsPage() {
           )}
 
           {/* Reviews List */}
-          <div className="rounded-2xl border border-white/10 bg-brand-surface p-6">
+          <div className="ui-card p-6">
             <h2 className="text-xl font-semibold">User Reviews</h2>
             {tool.reviews.length > 0 ? (
               <div className="mt-6 space-y-6">
                 {tool.reviews.map((review) => (
-                  <div key={review.id} className="border-b border-white/10 pb-6 last:border-0">
+                  <div key={review.id} className="border-b ui-border pb-6 last:border-0">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-primary/20">
@@ -645,7 +645,7 @@ export default function ToolDetailsPage() {
                       </span>
                     </div>
                     <p className="mt-4 text-brand-muted">{review.content}</p>
-                    <button className="mt-3 text-sm text-brand-muted hover:text-white">
+                    <button className="mt-3 text-sm text-brand-muted hover:text-brand-text">
                       Helpful ({review.helpfulCount})
                     </button>
                   </div>
@@ -659,7 +659,7 @@ export default function ToolDetailsPage() {
       )}
 
       {activeTab === 'alternatives' && (
-        <div className="rounded-2xl border border-white/10 bg-brand-surface p-6">
+        <div className="ui-card p-6">
           <h2 className="text-xl font-semibold">Similar Tools</h2>
           {similarTools.length > 0 ? (
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -667,7 +667,7 @@ export default function ToolDetailsPage() {
                 <Link
                   key={similarTool.id}
                   href={`/tools/${similarTool.slug}`}
-                  className="rounded-xl border border-white/10 bg-white/5 p-4 transition hover:border-brand-primary/60"
+                  className="rounded-xl border ui-border bg-brand-primary/10 p-4 transition hover:border-brand-primary/60"
                 >
                   <h3 className="font-medium">{similarTool.name}</h3>
                   <p className="mt-2 line-clamp-2 text-sm text-brand-muted">{similarTool.description}</p>
@@ -688,3 +688,4 @@ export default function ToolDetailsPage() {
     </div>
   );
 }
+

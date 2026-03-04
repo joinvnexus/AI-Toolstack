@@ -62,7 +62,7 @@ const renderRichContent = (content: string): ReactNode[] => {
     elements.push(
       <pre
         key={`code-${key++}`}
-        className="overflow-x-auto rounded-xl border border-white/10 bg-black/40 p-4 text-sm text-slate-100"
+        className="overflow-x-auto rounded-xl border ui-border bg-brand-background/70 p-4 text-sm text-brand-text"
       >
         <code>{codeLines.join('\n')}</code>
       </pre>
@@ -102,7 +102,7 @@ const renderRichContent = (content: string): ReactNode[] => {
 
     if (trimmed.startsWith('### ')) {
       elements.push(
-        <h3 key={`h3-${key++}`} className="mt-6 text-xl font-semibold text-white">
+        <h3 key={`h3-${key++}`} className="mt-6 text-xl font-semibold text-brand-text">
           {trimmed.replace(/^###\s+/, '')}
         </h3>
       );
@@ -111,7 +111,7 @@ const renderRichContent = (content: string): ReactNode[] => {
 
     if (trimmed.startsWith('## ')) {
       elements.push(
-        <h2 key={`h2-${key++}`} className="mt-8 text-2xl font-semibold text-white">
+        <h2 key={`h2-${key++}`} className="mt-8 text-2xl font-semibold text-brand-text">
           {trimmed.replace(/^##\s+/, '')}
         </h2>
       );
@@ -120,7 +120,7 @@ const renderRichContent = (content: string): ReactNode[] => {
 
     if (trimmed.startsWith('# ')) {
       elements.push(
-        <h1 key={`h1-${key++}`} className="mt-10 text-3xl font-bold text-white">
+        <h1 key={`h1-${key++}`} className="mt-10 text-3xl font-bold text-brand-text">
           {trimmed.replace(/^#\s+/, '')}
         </h1>
       );
@@ -236,7 +236,7 @@ export default function BlogPostPage() {
     <div className="mx-auto max-w-4xl">
       <Link
         href="/blog"
-        className="mb-6 inline-flex items-center gap-2 text-sm text-brand-muted hover:text-white"
+        className="mb-6 inline-flex items-center gap-2 text-sm text-brand-muted hover:text-brand-text"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to Blog
@@ -249,7 +249,7 @@ export default function BlogPostPage() {
               <Link
                 key={category.id}
                 href={`/blog?category=${category.slug}`}
-                className="rounded-full border border-white/10 px-3 py-1 text-xs text-brand-muted hover:text-white"
+                className="rounded-full border ui-border px-3 py-1 text-xs text-brand-muted hover:text-brand-text"
               >
                 {category.name}
               </Link>
@@ -296,16 +296,16 @@ export default function BlogPostPage() {
 
         <div className="space-y-4">{renderRichContent(post.content)}</div>
 
-        <div className="mt-12 border-t border-white/10 pt-8">
+        <div className="mt-12 border-t ui-border pt-8">
           <p className="font-medium">Share this article</p>
           <div className="mt-4 flex gap-4">
-            <button className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm hover:bg-white/10">
+            <button className="rounded-lg border ui-border bg-brand-primary/10 px-4 py-2 text-sm hover:bg-brand-primary/15">
               Twitter
             </button>
-            <button className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm hover:bg-white/10">
+            <button className="rounded-lg border ui-border bg-brand-primary/10 px-4 py-2 text-sm hover:bg-brand-primary/15">
               LinkedIn
             </button>
-            <button className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm hover:bg-white/10">
+            <button className="rounded-lg border ui-border bg-brand-primary/10 px-4 py-2 text-sm hover:bg-brand-primary/15">
               Copy Link
             </button>
           </div>
@@ -313,14 +313,14 @@ export default function BlogPostPage() {
       </article>
 
       {relatedPosts.length > 0 && (
-        <section className="mt-12 border-t border-white/10 pt-8">
+        <section className="mt-12 border-t ui-border pt-8">
           <h2 className="text-2xl font-semibold">Related Posts</h2>
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             {relatedPosts.map((related) => (
               <Link
                 key={related.id}
                 href={`/blog/${related.slug}`}
-                className="rounded-xl border border-white/10 bg-brand-surface p-4 transition hover:border-brand-primary/60"
+                className="ui-card p-4 transition hover:border-brand-primary/60"
               >
                 <p className="text-xs text-brand-muted">
                   {related.publishedAt ? new Date(related.publishedAt).toLocaleDateString() : ''}
@@ -340,3 +340,4 @@ export default function BlogPostPage() {
     </div>
   );
 }
+

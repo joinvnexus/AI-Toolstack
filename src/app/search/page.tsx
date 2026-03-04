@@ -107,7 +107,7 @@ function SearchPageContent() {
       </div>
 
       {!query ? (
-        <div className="rounded-2xl border border-white/10 bg-brand-surface p-12 text-center">
+        <div className="ui-card p-12 text-center">
           <Search className="mx-auto h-10 w-10 text-brand-muted" />
           <p className="mt-4 text-brand-muted">
             Enter a search query from the navbar to see results.
@@ -119,10 +119,10 @@ function SearchPageContent() {
         </div>
       ) : (
         <>
-          <div className="rounded-2xl border border-white/10 bg-brand-surface p-5">
+          <div className="ui-card p-5">
             <p className="text-sm text-brand-muted">
               {totalResults} result{totalResults === 1 ? '' : 's'} found for{' '}
-              <span className="font-medium text-white">{query}</span>
+              <span className="font-medium text-brand-text">{query}</span>
             </p>
           </div>
 
@@ -155,7 +155,7 @@ function SearchPageContent() {
                 ))}
               </div>
             ) : (
-              <div className="rounded-2xl border border-white/10 bg-brand-surface p-10 text-center text-brand-muted">
+              <div className="ui-card p-10 text-center text-brand-muted">
                 No tools matched this query.
               </div>
             )}
@@ -185,7 +185,7 @@ function SearchPageContent() {
                 ))}
               </div>
             ) : (
-              <div className="rounded-2xl border border-white/10 bg-brand-surface p-10 text-center text-brand-muted">
+              <div className="ui-card p-10 text-center text-brand-muted">
                 No blog posts matched this query.
               </div>
             )}
@@ -211,3 +211,5 @@ export default function SearchPage() {
     </Suspense>
   );
 }
+
+

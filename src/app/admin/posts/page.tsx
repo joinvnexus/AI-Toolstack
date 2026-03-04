@@ -126,16 +126,16 @@ export default function AdminPostsPage() {
           placeholder="Search posts..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full rounded-lg border border-white/10 bg-brand-surface py-2 pl-10 pr-4 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+          className="ui-input w-full py-2 pl-10 pr-4"
         />
       </div>
 
       {/* Posts Table */}
-      <div className="overflow-hidden rounded-xl border border-white/10 bg-brand-surface">
+      <div className="overflow-hidden rounded-xl border ui-border bg-brand-surface">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-white/10">
+              <tr className="border-b ui-border">
                 <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">Title</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">Author</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">Categories</th>
@@ -147,7 +147,7 @@ export default function AdminPostsPage() {
             <tbody>
               {filteredPosts.length > 0 ? (
                 filteredPosts.map((post) => (
-                  <tr key={post.id} className="border-b border-white/5 hover:bg-white/5">
+                  <tr key={post.id} className="border-b ui-border hover:bg-brand-primary/10">
                     <td className="px-4 py-3">
                       <div>
                         <p className="font-medium">{post.title}</p>
@@ -160,7 +160,7 @@ export default function AdminPostsPage() {
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-1">
                         {post.categories?.map((cat, idx) => (
-                          <span key={idx} className="rounded-full bg-white/5 px-2 py-0.5 text-xs">
+                          <span key={idx} className="rounded-full bg-brand-primary/10 px-2 py-0.5 text-xs">
                             {cat.name}
                           </span>
                         ))}
@@ -185,14 +185,14 @@ export default function AdminPostsPage() {
                       <div className="flex items-center justify-end gap-2">
                         <Link
                           href={`/blog/${post.slug}`}
-                          className="rounded-lg p-2 text-brand-muted hover:bg-white/10 hover:text-white"
+                          className="rounded-lg p-2 text-brand-muted hover:bg-brand-primary/15 hover:text-brand-text"
                           title="View"
                         >
                           <Eye className="h-4 w-4" />
                         </Link>
                         <Link
                           href={`/admin/posts/${post.slug}/edit`}
-                          className="rounded-lg p-2 text-brand-muted hover:bg-white/10 hover:text-white"
+                          className="rounded-lg p-2 text-brand-muted hover:bg-brand-primary/15 hover:text-brand-text"
                           title="Edit"
                         >
                           <Edit className="h-4 w-4" />
@@ -200,7 +200,7 @@ export default function AdminPostsPage() {
                         <button
                           onClick={() => handleDelete(post)}
                           disabled={deleting === post.id}
-                          className="rounded-lg p-2 text-brand-muted hover:bg-white/10 hover:text-red-500 disabled:opacity-50"
+                          className="rounded-lg p-2 text-brand-muted hover:bg-brand-primary/15 hover:text-red-500 disabled:opacity-50"
                           title="Delete"
                         >
                           {deleting === post.id ? (
@@ -227,3 +227,4 @@ export default function AdminPostsPage() {
     </div>
   );
 }
+

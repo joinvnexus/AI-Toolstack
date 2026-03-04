@@ -52,7 +52,7 @@ export default function ForgotPasswordPage() {
   if (success) {
     return (
       <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4">
-        <div className="w-full max-w-md rounded-2xl border border-white/10 bg-brand-surface p-8 text-center">
+        <div className="w-full max-w-md ui-card p-8 text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-500/20">
             <svg className="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -76,7 +76,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-brand-surface p-8">
+      <div className="w-full max-w-md ui-card p-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold">Forgot password?</h1>
           <p className="mt-2 text-sm text-brand-muted">
@@ -99,7 +99,7 @@ export default function ForgotPasswordPage() {
                 {...register('email')}
                 type="email"
                 placeholder="you@example.com"
-                className="w-full rounded-lg border border-white/15 bg-black/20 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-brand-primary"
+                className="ui-input w-full py-2.5 pl-10 pr-4"
               />
             </div>
             {errors.email && (
@@ -122,7 +122,7 @@ export default function ForgotPasswordPage() {
 
         <Link
           href="/login"
-          className="mt-6 inline-flex items-center justify-center text-sm text-brand-muted hover:text-white"
+          className="mt-6 inline-flex items-center justify-center text-sm text-brand-muted hover:text-brand-text"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to login
@@ -131,3 +131,4 @@ export default function ForgotPasswordPage() {
     </div>
   );
 }
+

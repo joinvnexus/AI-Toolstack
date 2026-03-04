@@ -132,7 +132,7 @@ function ToolsPageContent() {
       <div className="flex flex-col gap-4 lg:flex-row">
         {/* Filters Sidebar */}
         <aside className="w-full space-y-6 lg:w-64 lg:flex-shrink-0">
-          <div className="rounded-2xl border border-white/10 bg-brand-surface p-5">
+          <div className="ui-card p-5">
             <div className="flex items-center gap-2 mb-4">
               <Filter className="h-4 w-4" />
               <h3 className="font-medium">Filters</h3>
@@ -147,7 +147,7 @@ function ToolsPageContent() {
                   className={`rounded-lg px-3 py-2 text-sm text-left transition ${
                     normalizedCategory === 'All'
                       ? 'bg-brand-primary text-white'
-                      : 'bg-white/5 hover:bg-white/10'
+                      : 'bg-brand-primary/10 hover:bg-brand-primary/15'
                   }`}
                 >
                   All
@@ -159,7 +159,7 @@ function ToolsPageContent() {
                     className={`rounded-lg px-3 py-2 text-sm text-left transition ${
                       normalizedCategory === category.slug
                         ? 'bg-brand-primary text-white'
-                        : 'bg-white/5 hover:bg-white/10'
+                        : 'bg-brand-primary/10 hover:bg-brand-primary/15'
                     }`}
                   >
                     {category.name}
@@ -182,7 +182,7 @@ function ToolsPageContent() {
                     className={`rounded-lg px-3 py-2 text-sm transition ${
                       selectedPricing === pricing
                         ? 'bg-brand-primary text-white'
-                        : 'bg-white/5 hover:bg-white/10'
+                        : 'bg-brand-primary/10 hover:bg-brand-primary/15'
                     }`}
                   >
                     {pricing}
@@ -205,14 +205,14 @@ function ToolsPageContent() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search tools..."
-                  className="w-full rounded-xl border border-white/10 bg-brand-surface py-2.5 pl-10 pr-4 text-sm outline-none focus:border-brand-primary"
+                  className="ui-input w-full py-2.5 pl-10 pr-4"
                 />
               </div>
             </form>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="rounded-xl border border-white/10 bg-brand-surface px-4 py-2.5 text-sm outline-none focus:border-brand-primary"
+              className="rounded-xl border ui-border bg-brand-surface px-4 py-2.5 text-sm outline-none focus:border-brand-primary"
             >
               {sortOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -254,7 +254,7 @@ function ToolsPageContent() {
               ))}
             </div>
           ) : (
-            <div className="rounded-2xl border border-white/10 bg-brand-surface p-12 text-center">
+            <div className="ui-card p-12 text-center">
               <p className="text-brand-muted">No tools found matching your criteria.</p>
             </div>
           )}
@@ -265,7 +265,7 @@ function ToolsPageContent() {
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="rounded-lg border border-white/10 bg-brand-surface px-4 py-2 text-sm disabled:opacity-50"
+                className="rounded-lg border ui-border bg-brand-surface px-4 py-2 text-sm disabled:opacity-50"
               >
                 Previous
               </button>
@@ -275,7 +275,7 @@ function ToolsPageContent() {
               <button
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="rounded-lg border border-white/10 bg-brand-surface px-4 py-2 text-sm disabled:opacity-50"
+                className="rounded-lg border ui-border bg-brand-surface px-4 py-2 text-sm disabled:opacity-50"
               >
                 Next
               </button>
@@ -302,3 +302,4 @@ export default function ToolsPage() {
     </Suspense>
   );
 }
+

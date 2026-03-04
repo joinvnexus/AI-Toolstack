@@ -182,7 +182,7 @@ export default function AdminPage() {
           <Link
             key={stat.label}
             href={stat.href}
-            className="rounded-2xl border border-white/10 bg-brand-surface p-6 transition hover:border-brand-primary/60"
+            className="ui-card p-6 transition hover:border-brand-primary/60"
           >
             <div className="flex items-center justify-between">
               <div>
@@ -196,7 +196,7 @@ export default function AdminPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="rounded-2xl border border-white/10 bg-brand-surface p-6">
+      <div className="ui-card p-6">
         <h2 className="text-lg font-semibold">Quick Actions</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Link
@@ -207,19 +207,19 @@ export default function AdminPage() {
           </Link>
           <Link
             href="/admin/posts/new"
-            className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-center text-sm font-medium hover:bg-white/10"
+            className="rounded-xl border ui-border bg-brand-primary/10 px-4 py-3 text-center text-sm font-medium hover:bg-brand-primary/15"
           >
             Write Blog Post
           </Link>
           <Link
             href="/admin/categories"
-            className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-center text-sm font-medium hover:bg-white/10"
+            className="rounded-xl border ui-border bg-brand-primary/10 px-4 py-3 text-center text-sm font-medium hover:bg-brand-primary/15"
           >
             Manage Categories
           </Link>
           <Link
             href="/admin/settings"
-            className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-center text-sm font-medium hover:bg-white/10"
+            className="rounded-xl border ui-border bg-brand-primary/10 px-4 py-3 text-center text-sm font-medium hover:bg-brand-primary/15"
           >
             Site Settings
           </Link>
@@ -227,7 +227,7 @@ export default function AdminPage() {
       </div>
 
       {/* Recent Activity */}
-      <div className="rounded-2xl border border-white/10 bg-brand-surface p-6">
+      <div className="ui-card p-6">
         <h2 className="text-lg font-semibold">Recent Activity</h2>
         {recentActivity.length > 0 ? (
           <div className="mt-4 space-y-3">
@@ -235,7 +235,7 @@ export default function AdminPage() {
               <Link
                 key={activity.id}
                 href={activity.href}
-                className="flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-white/[0.03] p-3 transition hover:border-brand-primary/40"
+                className="flex items-center justify-between gap-4 rounded-xl border ui-border bg-brand-primary/10 p-3 transition hover:border-brand-primary/40"
               >
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
@@ -261,3 +261,4 @@ export default function AdminPage() {
     </div>
   );
 }
+

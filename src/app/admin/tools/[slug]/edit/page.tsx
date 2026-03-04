@@ -247,7 +247,7 @@ export default function EditToolPage() {
       <div className="flex items-center gap-4">
         <Link
           href="/admin/tools"
-          className="rounded-lg p-2 text-brand-muted hover:bg-white/10 hover:text-white"
+          className="rounded-lg p-2 text-brand-muted hover:bg-brand-primary/15 hover:text-brand-text"
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>
@@ -258,7 +258,7 @@ export default function EditToolPage() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="max-w-2xl space-y-6">
-        <div className="space-y-4 rounded-xl border border-white/10 bg-brand-surface p-6">
+        <div className="space-y-4 ui-card p-6">
           <h2 className="text-lg font-semibold">Basic Information</h2>
 
           <div>
@@ -267,7 +267,7 @@ export default function EditToolPage() {
               {...register('name')}
               type="text"
               placeholder="e.g., ChatGPT, Midjourney"
-              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+              className="ui-input w-full"
             />
             {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name.message}</p>}
           </div>
@@ -278,7 +278,7 @@ export default function EditToolPage() {
               {...register('description')}
               placeholder="Brief description (1-2 sentences)"
               rows={2}
-              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+              className="ui-input w-full"
             />
             {errors.description && (
               <p className="mt-1 text-sm text-red-500">{errors.description.message}</p>
@@ -291,7 +291,7 @@ export default function EditToolPage() {
               {...register('longDescription')}
               placeholder="Used only if section fields below are empty"
               rows={4}
-              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+              className="ui-input w-full"
             />
           </div>
 
@@ -299,7 +299,7 @@ export default function EditToolPage() {
             <label className="mb-2 block text-sm font-medium">Category *</label>
             <select
               {...register('categoryId')}
-              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary"
+              className="ui-input w-full"
             >
               <option value="">Select a category</option>
               {categories.map((category) => (
@@ -314,7 +314,7 @@ export default function EditToolPage() {
           </div>
         </div>
 
-        <div className="space-y-4 rounded-xl border border-white/10 bg-brand-surface p-6">
+        <div className="space-y-4 ui-card p-6">
           <h2 className="text-lg font-semibold">Pricing & Links</h2>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -322,7 +322,7 @@ export default function EditToolPage() {
               <label className="mb-2 block text-sm font-medium">Pricing Model *</label>
               <select
                 {...register('pricingModel')}
-                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary"
+                className="ui-input w-full"
               >
                 <option value="FREE">Free</option>
                 <option value="PAID">Paid</option>
@@ -336,7 +336,7 @@ export default function EditToolPage() {
                 {...register('priceRange')}
                 type="text"
                 placeholder="e.g., $10-30/month"
-                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+                className="ui-input w-full"
               />
             </div>
           </div>
@@ -347,7 +347,7 @@ export default function EditToolPage() {
               {...register('websiteUrl')}
               type="url"
               placeholder="https://example.com"
-              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+              className="ui-input w-full"
             />
             {errors.websiteUrl && (
               <p className="mt-1 text-sm text-red-500">{errors.websiteUrl.message}</p>
@@ -360,7 +360,7 @@ export default function EditToolPage() {
               {...register('logoUrl')}
               type="url"
               placeholder="https://example.com/logo.png"
-              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+              className="ui-input w-full"
             />
             {errors.logoUrl && <p className="mt-1 text-sm text-red-500">{errors.logoUrl.message}</p>}
           </div>
@@ -371,7 +371,7 @@ export default function EditToolPage() {
               {...register('affiliateUrl')}
               type="url"
               placeholder="https://example.com/affiliate"
-              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+              className="ui-input w-full"
             />
             {errors.affiliateUrl && (
               <p className="mt-1 text-sm text-red-500">{errors.affiliateUrl.message}</p>
@@ -379,7 +379,7 @@ export default function EditToolPage() {
           </div>
         </div>
 
-        <div className="space-y-4 rounded-xl border border-white/10 bg-brand-surface p-6">
+        <div className="space-y-4 ui-card p-6">
           <h2 className="text-lg font-semibold">Detailed Content Sections</h2>
 
           <div>
@@ -388,7 +388,7 @@ export default function EditToolPage() {
               {...register('overview')}
               placeholder="High-level summary of what the tool does"
               rows={3}
-              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+              className="ui-input w-full"
             />
           </div>
 
@@ -399,7 +399,7 @@ export default function EditToolPage() {
                 {...register('features')}
                 placeholder={"One feature per line\ne.g., AI chat\nCode generation"}
                 rows={4}
-                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+                className="ui-input w-full"
               />
             </div>
 
@@ -409,7 +409,7 @@ export default function EditToolPage() {
                 {...register('alternativeTools')}
                 placeholder={"One alternative per line\ne.g., Claude\nGemini"}
                 rows={4}
-                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+                className="ui-input w-full"
               />
             </div>
           </div>
@@ -421,7 +421,7 @@ export default function EditToolPage() {
                 {...register('pros')}
                 placeholder={"One pro per line\ne.g., Fast responses"}
                 rows={4}
-                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+                className="ui-input w-full"
               />
             </div>
 
@@ -431,7 +431,7 @@ export default function EditToolPage() {
                 {...register('cons')}
                 placeholder={"One con per line\ne.g., Limited free tier"}
                 rows={4}
-                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+                className="ui-input w-full"
               />
             </div>
           </div>
@@ -442,7 +442,7 @@ export default function EditToolPage() {
               {...register('pricingDetails')}
               placeholder="Explain plans, limits, trial, and billing notes"
               rows={3}
-              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+              className="ui-input w-full"
             />
           </div>
 
@@ -452,7 +452,7 @@ export default function EditToolPage() {
               {...register('videoUrl')}
               type="url"
               placeholder="https://youtube.com/watch?v=..."
-              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+              className="ui-input w-full"
             />
             {errors.videoUrl && <p className="mt-1 text-sm text-red-500">{errors.videoUrl.message}</p>}
           </div>
@@ -463,7 +463,7 @@ export default function EditToolPage() {
               {...register('conclusion')}
               placeholder="Final verdict and who should use this tool"
               rows={3}
-              className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+              className="ui-input w-full"
             />
           </div>
         </div>
@@ -471,7 +471,7 @@ export default function EditToolPage() {
         <div className="flex justify-end gap-4">
           <Link
             href="/admin/tools"
-            className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium hover:bg-white/10"
+            className="rounded-lg border ui-border bg-brand-primary/10 px-4 py-2 text-sm font-medium hover:bg-brand-primary/15"
           >
             Cancel
           </Link>
@@ -488,3 +488,4 @@ export default function EditToolPage() {
     </div>
   );
 }
+

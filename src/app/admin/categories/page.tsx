@@ -181,7 +181,7 @@ export default function AdminCategoriesPage() {
 
       {/* Add/Edit Form */}
       {showForm && (
-        <div className="rounded-xl border border-white/10 bg-brand-surface p-6">
+        <div className="ui-card p-6">
           <h2 className="mb-4 text-lg font-semibold">
             {editingCategory ? 'Edit Category' : 'Add New Category'}
           </h2>
@@ -192,7 +192,7 @@ export default function AdminCategoriesPage() {
                 {...register('name')}
                 type="text"
                 placeholder="e.g., Productivity, Design"
-                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+                className="ui-input w-full"
               />
               {errors.name && (
                 <p className="mt-1 text-sm text-red-500">{errors.name.message}</p>
@@ -205,7 +205,7 @@ export default function AdminCategoriesPage() {
                 {...register('description')}
                 placeholder="Brief description"
                 rows={2}
-                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+                className="ui-input w-full"
               />
             </div>
 
@@ -215,7 +215,7 @@ export default function AdminCategoriesPage() {
                 {...register('icon')}
                 type="text"
                 placeholder="e.g., ⚡, 💻"
-                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+                className="ui-input w-full"
               />
             </div>
 
@@ -231,7 +231,7 @@ export default function AdminCategoriesPage() {
               <button
                 type="button"
                 onClick={handleCancel}
-                className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium hover:bg-white/10"
+                className="rounded-lg border ui-border bg-brand-primary/10 px-4 py-2 text-sm font-medium hover:bg-brand-primary/15"
               >
                 Cancel
               </button>
@@ -248,7 +248,7 @@ export default function AdminCategoriesPage() {
           placeholder="Search categories..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full rounded-lg border border-white/10 bg-brand-surface py-2 pl-10 pr-4 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+          className="ui-input w-full py-2 pl-10 pr-4"
         />
       </div>
 
@@ -258,7 +258,7 @@ export default function AdminCategoriesPage() {
           filteredCategories.map((category) => (
             <div
               key={category.id}
-              className="rounded-xl border border-white/10 bg-brand-surface p-5"
+              className="ui-card p-5"
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
@@ -271,7 +271,7 @@ export default function AdminCategoriesPage() {
                 <div className="flex gap-1">
                   <button
                     onClick={() => handleEdit(category)}
-                    className="rounded-lg p-2 text-brand-muted hover:bg-white/10 hover:text-white"
+                    className="rounded-lg p-2 text-brand-muted hover:bg-brand-primary/15 hover:text-brand-text"
                     title="Edit"
                   >
                     <Edit className="h-4 w-4" />
@@ -279,7 +279,7 @@ export default function AdminCategoriesPage() {
                   <button
                     onClick={() => handleDelete(category)}
                     disabled={deleting === category.id}
-                    className="rounded-lg p-2 text-brand-muted hover:bg-white/10 hover:text-red-500 disabled:opacity-50"
+                    className="rounded-lg p-2 text-brand-muted hover:bg-brand-primary/15 hover:text-red-500 disabled:opacity-50"
                     title="Delete"
                   >
                     {deleting === category.id ? (
@@ -296,7 +296,7 @@ export default function AdminCategoriesPage() {
             </div>
           ))
         ) : (
-          <div className="col-span-full rounded-xl border border-white/10 bg-brand-surface p-8 text-center">
+          <div className="col-span-full ui-card p-8 text-center">
             <p className="text-brand-muted">
               {searchQuery ? 'No categories found.' : 'No categories yet. Add your first category!'}
             </p>
@@ -306,3 +306,4 @@ export default function AdminCategoriesPage() {
     </div>
   );
 }
+

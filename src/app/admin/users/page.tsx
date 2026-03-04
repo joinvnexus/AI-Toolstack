@@ -139,7 +139,7 @@ export default function AdminUsersPage() {
         <button
           onClick={() => fetchUsers(true)}
           disabled={refreshing}
-          className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium hover:bg-white/10 disabled:opacity-50"
+          className="flex items-center gap-2 rounded-lg border ui-border bg-brand-primary/10 px-4 py-2 text-sm font-medium hover:bg-brand-primary/15 disabled:opacity-50"
         >
           {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCcw className="h-4 w-4" />}
           Refresh
@@ -154,13 +154,13 @@ export default function AdminUsersPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search users by email..."
-            className="w-full rounded-lg border border-white/10 bg-brand-surface py-2 pl-10 pr-4 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+            className="ui-input w-full py-2 pl-10 pr-4"
           />
         </div>
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value as 'ALL' | 'USER' | 'ADMIN')}
-          className="rounded-lg border border-white/10 bg-brand-surface px-4 py-2 text-sm outline-none focus:border-brand-primary"
+          className="rounded-lg border ui-border bg-brand-surface px-4 py-2 text-sm outline-none focus:border-brand-primary"
         >
           <option value="ALL">All Roles</option>
           <option value="USER">USER</option>
@@ -179,25 +179,25 @@ export default function AdminUsersPage() {
       )}
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-xl border border-white/10 bg-brand-surface p-4">
+        <div className="ui-card p-4">
           <p className="text-sm text-brand-muted">Total Users</p>
           <p className="mt-2 text-2xl font-semibold">{users.length}</p>
         </div>
-        <div className="rounded-xl border border-white/10 bg-brand-surface p-4">
+        <div className="ui-card p-4">
           <p className="text-sm text-brand-muted">Admins</p>
           <p className="mt-2 text-2xl font-semibold">{users.filter((u) => u.role === 'ADMIN').length}</p>
         </div>
-        <div className="rounded-xl border border-white/10 bg-brand-surface p-4">
+        <div className="ui-card p-4">
           <p className="text-sm text-brand-muted">Members</p>
           <p className="mt-2 text-2xl font-semibold">{users.filter((u) => u.role === 'USER').length}</p>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-white/10 bg-brand-surface">
+      <div className="overflow-hidden rounded-xl border ui-border bg-brand-surface">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-white/10">
+              <tr className="border-b ui-border">
                 <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">User</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">Role</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">Joined</th>
@@ -207,7 +207,7 @@ export default function AdminUsersPage() {
             <tbody>
               {filteredUsers.length > 0 ? (
                 filteredUsers.map((user) => (
-                  <tr key={user.id} className="border-b border-white/5 hover:bg-white/5">
+                  <tr key={user.id} className="border-b ui-border hover:bg-brand-primary/10">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-primary/20 text-brand-primary">
@@ -224,7 +224,7 @@ export default function AdminUsersPage() {
                         className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
                           user.role === 'ADMIN'
                             ? 'bg-brand-primary/20 text-brand-primary'
-                            : 'bg-white/10 text-brand-muted'
+                            : 'bg-brand-primary/15 text-brand-muted'
                         }`}
                       >
                         <Shield className="h-3 w-3" />
@@ -239,7 +239,7 @@ export default function AdminUsersPage() {
                         <button
                           onClick={() => handleRoleUpdate(user, 'USER')}
                           disabled={updatingId === user.id || user.role === 'USER'}
-                          className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium hover:bg-white/10 disabled:opacity-50"
+                          className="rounded-lg border ui-border bg-brand-primary/10 px-3 py-1.5 text-xs font-medium hover:bg-brand-primary/15 disabled:opacity-50"
                         >
                           Set USER
                         </button>
@@ -275,3 +275,4 @@ export default function AdminUsersPage() {
     </div>
   );
 }
+

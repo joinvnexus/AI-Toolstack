@@ -129,7 +129,7 @@ export default function AdminSettingsPage() {
       </div>
 
       {/* User Role Management */}
-      <div className="rounded-xl border border-white/10 bg-brand-surface p-6">
+      <div className="ui-card p-6">
         <div className="mb-4 flex items-center gap-2">
           <Shield className="h-5 w-5 text-brand-primary" />
           <h2 className="text-lg font-semibold">Manage User Roles</h2>
@@ -144,7 +144,7 @@ export default function AdminSettingsPage() {
                 {...searchForm.register('email')}
                 type="email"
                 placeholder="user@example.com"
-                className="flex-1 rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
+                className="flex-1 rounded-lg border ui-border bg-brand-background/40 px-4 py-2 text-sm outline-none focus:border-brand-primary placeholder:text-brand-muted"
               />
               <button
                 type="submit"
@@ -172,7 +172,7 @@ export default function AdminSettingsPage() {
 
         {/* User Info & Role Update */}
         {userInfo && (
-          <div className="rounded-lg border border-white/10 bg-black/20 p-4">
+          <div className="rounded-lg border ui-border bg-brand-background/40 p-4">
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <p className="font-medium">{userInfo.email}</p>
@@ -180,7 +180,7 @@ export default function AdminSettingsPage() {
                 <p className="text-sm text-brand-muted">Created: {new Date(userInfo.created_at).toLocaleDateString()}</p>
               </div>
               <span className={`rounded-full px-3 py-1 text-xs font-medium ${
-                userInfo.role === 'ADMIN' ? 'bg-brand-primary/20 text-brand-primary' : 'bg-white/10 text-brand-muted'
+                userInfo.role === 'ADMIN' ? 'bg-brand-primary/20 text-brand-primary' : 'bg-brand-primary/15 text-brand-muted'
               }`}>
                 {userInfo.role}
               </span>
@@ -191,7 +191,7 @@ export default function AdminSettingsPage() {
                 <label className="mb-2 block text-sm font-medium">Set Role</label>
                 <select
                   {...roleForm.register('role')}
-                  className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-brand-primary"
+                  className="ui-input w-full"
                 >
                   <option value="USER">USER</option>
                   <option value="ADMIN">ADMIN</option>
@@ -211,7 +211,7 @@ export default function AdminSettingsPage() {
       </div>
 
       {/* SQL Instructions */}
-      <div className="rounded-xl border border-white/10 bg-brand-surface p-6">
+      <div className="ui-card p-6">
         <h2 className="mb-4 text-lg font-semibold">Alternative: Set Admin via SQL</h2>
         <p className="mb-4 text-sm text-brand-muted">
           You can also run this SQL in Supabase SQL Editor to make a user admin:
@@ -226,3 +226,4 @@ export default function AdminSettingsPage() {
     </div>
   );
 }
+

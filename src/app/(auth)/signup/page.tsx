@@ -84,7 +84,7 @@ export default function SignupPage() {
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-brand-surface p-8">
+      <div className="w-full max-w-md ui-card p-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold">Create an account</h1>
           <p className="mt-2 text-sm text-brand-muted">
@@ -107,7 +107,7 @@ export default function SignupPage() {
                 {...register('name')}
                 type="text"
                 placeholder="John Doe"
-                className="w-full rounded-lg border border-white/15 bg-black/20 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-brand-primary"
+                className="ui-input w-full py-2.5 pl-10 pr-4"
               />
             </div>
             {errors.name && (
@@ -123,7 +123,7 @@ export default function SignupPage() {
                 {...register('email')}
                 type="email"
                 placeholder="you@example.com"
-                className="w-full rounded-lg border border-white/15 bg-black/20 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-brand-primary"
+                className="ui-input w-full py-2.5 pl-10 pr-4"
               />
             </div>
             {errors.email && (
@@ -139,7 +139,7 @@ export default function SignupPage() {
                 {...register('password')}
                 type="password"
                 placeholder="Create a password"
-                className="w-full rounded-lg border border-white/15 bg-black/20 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-brand-primary"
+                className="ui-input w-full py-2.5 pl-10 pr-4"
               />
             </div>
             {errors.password && (
@@ -155,7 +155,7 @@ export default function SignupPage() {
                 {...register('confirmPassword')}
                 type="password"
                 placeholder="Confirm your password"
-                className="w-full rounded-lg border border-white/15 bg-black/20 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-brand-primary"
+                className="ui-input w-full py-2.5 pl-10 pr-4"
               />
             </div>
             {errors.confirmPassword && (
@@ -178,7 +178,7 @@ export default function SignupPage() {
 
         <div className="mt-6">
           <div className="relative">
-            <div className="absolute w-full border-t border-white/10"></div>
+            <div className="absolute w-full border-t ui-border"></div>
           </div>
           <div className="relative flex justify-center text-xs">
             <span className="bg-brand-surface px-2 text-brand-muted">
@@ -192,7 +192,7 @@ export default function SignupPage() {
             type="button"
             disabled={loading || oauthLoading !== null}
             onClick={() => handleOAuthSignIn('google')}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-white/15 py-2.5 text-sm font-medium transition hover:bg-white/5 disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-lg border ui-border py-2.5 text-sm font-medium transition hover:bg-brand-primary/10 disabled:opacity-60"
           >
             {oauthLoading === 'google' ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -223,7 +223,7 @@ export default function SignupPage() {
             type="button"
             disabled={loading || oauthLoading !== null}
             onClick={() => handleOAuthSignIn('facebook')}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-white/15 py-2.5 text-sm font-medium transition hover:bg-white/5 disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-lg border ui-border py-2.5 text-sm font-medium transition hover:bg-brand-primary/10 disabled:opacity-60"
           >
             {oauthLoading === 'facebook' ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -249,3 +249,4 @@ export default function SignupPage() {
     </div>
   );
 }
+
