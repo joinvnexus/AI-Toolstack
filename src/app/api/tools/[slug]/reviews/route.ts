@@ -175,37 +175,40 @@ export async function POST(
     }
     const { rating, content } = parsedBody.data;
 
-    const review = await prisma.review.create({
-      data: {
-        rating,
-        content,
-        userId: user.id,
-        toolId: tool.id,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            avatarUrl: true,
+    const review = await prisma.$transaction(async (tx) => {
+      const createdReview = await tx.review.create({
+        data: {
+          rating,
+          content,
+          userId: user.id,
+          toolId: tool.id,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    // Update tool rating after insert
-    const aggregate = await prisma.review.aggregate({
-      where: { toolId: tool.id },
-      _avg: { rating: true },
-      _count: { id: true },
-    });
+      const aggregate = await tx.review.aggregate({
+        where: { toolId: tool.id },
+        _avg: { rating: true },
+        _count: { id: true },
+      });
 
-    await prisma.tool.update({
-      where: { id: tool.id },
-      data: {
-        rating: aggregate._avg.rating ?? 0,
-        reviewCount: aggregate._count.id,
-      },
+      await tx.tool.update({
+        where: { id: tool.id },
+        data: {
+          rating: aggregate._avg.rating ?? 0,
+          reviewCount: aggregate._count.id,
+        },
+      });
+
+      return createdReview;
     });
 
     return NextResponse.json(review, { status: 201 });

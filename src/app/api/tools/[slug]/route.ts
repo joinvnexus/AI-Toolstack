@@ -124,46 +124,47 @@ export async function PUT(
       );
     }
 
-    // If category changed, update counts
-    if (categoryId && categoryId !== tool.categoryId) {
-      await prisma.category.update({
-        where: { id: tool.categoryId },
-        data: { toolCount: { decrement: 1 } },
-      });
-      await prisma.category.update({
-        where: { id: categoryId },
-        data: { toolCount: { increment: 1 } },
-      });
-    }
+    const updatedTool = await prisma.$transaction(async (tx) => {
+      if (categoryId && categoryId !== tool.categoryId) {
+        await tx.category.update({
+          where: { id: tool.categoryId },
+          data: { toolCount: { decrement: 1 } },
+        });
+        await tx.category.update({
+          where: { id: categoryId },
+          data: { toolCount: { increment: 1 } },
+        });
+      }
 
-    const updatedTool = await prisma.tool.update({
-      where: { id: tool.id },
-      data: {
-        name: name || tool.name,
-        description: description || tool.description,
-        longDescription: longDescription || tool.longDescription,
-        overview: overview !== undefined ? overview?.trim() || null : tool.overview,
-        features: features !== undefined ? normalizeStringArray(features) : tool.features,
-        pros: pros !== undefined ? normalizeStringArray(pros) : tool.pros,
-        cons: cons !== undefined ? normalizeStringArray(cons) : tool.cons,
-        pricingDetails:
-          pricingDetails !== undefined ? pricingDetails?.trim() || null : tool.pricingDetails,
-        alternativeTools:
-          alternativeTools !== undefined
-            ? normalizeStringArray(alternativeTools)
-            : tool.alternativeTools,
-        videoUrl: videoUrl !== undefined ? videoUrl?.trim() || null : tool.videoUrl,
-        conclusion: conclusion !== undefined ? conclusion?.trim() || null : tool.conclusion,
-        logoUrl: logoUrl || tool.logoUrl,
-        websiteUrl: websiteUrl || tool.websiteUrl,
-        affiliateUrl: affiliateUrl !== undefined ? affiliateUrl : tool.affiliateUrl,
-        pricingModel: pricingModel ?? tool.pricingModel,
-        priceRange: priceRange !== undefined ? priceRange : tool.priceRange,
-        categoryId: categoryId || tool.categoryId,
-      },
-      include: {
-        category: true,
-      },
+      return tx.tool.update({
+        where: { id: tool.id },
+        data: {
+          name: name || tool.name,
+          description: description || tool.description,
+          longDescription: longDescription || tool.longDescription,
+          overview: overview !== undefined ? overview?.trim() || null : tool.overview,
+          features: features !== undefined ? normalizeStringArray(features) : tool.features,
+          pros: pros !== undefined ? normalizeStringArray(pros) : tool.pros,
+          cons: cons !== undefined ? normalizeStringArray(cons) : tool.cons,
+          pricingDetails:
+            pricingDetails !== undefined ? pricingDetails?.trim() || null : tool.pricingDetails,
+          alternativeTools:
+            alternativeTools !== undefined
+              ? normalizeStringArray(alternativeTools)
+              : tool.alternativeTools,
+          videoUrl: videoUrl !== undefined ? videoUrl?.trim() || null : tool.videoUrl,
+          conclusion: conclusion !== undefined ? conclusion?.trim() || null : tool.conclusion,
+          logoUrl: logoUrl || tool.logoUrl,
+          websiteUrl: websiteUrl || tool.websiteUrl,
+          affiliateUrl: affiliateUrl !== undefined ? affiliateUrl : tool.affiliateUrl,
+          pricingModel: pricingModel ?? tool.pricingModel,
+          priceRange: priceRange !== undefined ? priceRange : tool.priceRange,
+          categoryId: categoryId || tool.categoryId,
+        },
+        include: {
+          category: true,
+        },
+      });
     });
 
     return NextResponse.json(updatedTool);
@@ -195,28 +196,27 @@ export async function DELETE(
       );
     }
 
-    // Update category tool count
-    await prisma.category.update({
-      where: { id: tool.categoryId },
-      data: { toolCount: { decrement: 1 } },
-    });
+    await prisma.$transaction(async (tx) => {
+      await tx.category.update({
+        where: { id: tool.categoryId },
+        data: { toolCount: { decrement: 1 } },
+      });
 
-    // Delete related records first
-    await prisma.review.deleteMany({
-      where: { toolId: tool.id },
-    });
+      await tx.review.deleteMany({
+        where: { toolId: tool.id },
+      });
 
-    await prisma.bookmark.deleteMany({
-      where: { toolId: tool.id },
-    });
+      await tx.bookmark.deleteMany({
+        where: { toolId: tool.id },
+      });
 
-    await prisma.screenshot.deleteMany({
-      where: { toolId: tool.id },
-    });
+      await tx.screenshot.deleteMany({
+        where: { toolId: tool.id },
+      });
 
-    // Delete the tool
-    await prisma.tool.delete({
-      where: { id: tool.id },
+      await tx.tool.delete({
+        where: { id: tool.id },
+      });
     });
 
     return NextResponse.json({ message: 'Tool deleted successfully' });

@@ -193,51 +193,53 @@ export async function POST(request: Request) {
     }
     const shouldPublish = published === true;
 
-    await prisma.user.upsert({
-      where: { id: adminResult.user.id },
-      create: {
-        id: adminResult.user.id,
-        email: adminResult.user.email || `${adminResult.user.id}@local.invalid`,
-        name: adminResult.user.name,
-        avatarUrl: adminResult.user.avatarUrl,
-        role: 'ADMIN'
-      },
-      update: {
-        email: adminResult.user.email || `${adminResult.user.id}@local.invalid`,
-        name: adminResult.user.name,
-        avatarUrl: adminResult.user.avatarUrl,
-        role: 'ADMIN'
-      }
-    });
-
-    const post = await prisma.blogPost.create({
-      data: {
-        title,
-        slug: resolvedSlug,
-        content,
-        excerpt: excerpt?.trim() || null,
-        featuredImage: featuredImage?.trim() || null,
-        readTime: estimateReadTime(content),
-        authorId: adminResult.user.id,
-        published: shouldPublish,
-        publishedAt: shouldPublish ? new Date() : null,
-        categories:
-          categoryIds.length > 0
-            ? {
-                connect: categoryIds.map((id: string) => ({ id }))
-              }
-            : undefined
-      },
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            avatarUrl: true
-          }
+    const post = await prisma.$transaction(async (tx) => {
+      await tx.user.upsert({
+        where: { id: adminResult.user.id },
+        create: {
+          id: adminResult.user.id,
+          email: adminResult.user.email || `${adminResult.user.id}@local.invalid`,
+          name: adminResult.user.name,
+          avatarUrl: adminResult.user.avatarUrl,
+          role: 'ADMIN'
         },
-        categories: true
-      }
+        update: {
+          email: adminResult.user.email || `${adminResult.user.id}@local.invalid`,
+          name: adminResult.user.name,
+          avatarUrl: adminResult.user.avatarUrl,
+          role: 'ADMIN'
+        }
+      });
+
+      return tx.blogPost.create({
+        data: {
+          title,
+          slug: resolvedSlug,
+          content,
+          excerpt: excerpt?.trim() || null,
+          featuredImage: featuredImage?.trim() || null,
+          readTime: estimateReadTime(content),
+          authorId: adminResult.user.id,
+          published: shouldPublish,
+          publishedAt: shouldPublish ? new Date() : null,
+          categories:
+            categoryIds.length > 0
+              ? {
+                  connect: categoryIds.map((id: string) => ({ id }))
+                }
+              : undefined
+        },
+        include: {
+          author: {
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true
+            }
+          },
+          categories: true
+        }
+      });
     });
 
     return NextResponse.json(post, { status: 201 });

@@ -142,36 +142,39 @@ export async function POST(request: Request) {
       .replace(/[\s_-]+/g, '-')
       .replace(/^-+|-+$/g, '');
 
-    const tool = await prisma.tool.create({
-      data: {
-        name,
-        slug,
-        description,
-        longDescription: longDescription || description,
-        overview: overview?.trim() || null,
-        features: normalizeStringArray(features),
-        pros: normalizeStringArray(pros),
-        cons: normalizeStringArray(cons),
-        pricingDetails: pricingDetails?.trim() || null,
-        alternativeTools: normalizeStringArray(alternativeTools),
-        videoUrl: videoUrl?.trim() || null,
-        conclusion: conclusion?.trim() || null,
-        logoUrl,
-        websiteUrl,
-        affiliateUrl,
-        pricingModel,
-        priceRange,
-        categoryId,
-      },
-      include: {
-        category: true,
-      },
-    });
+    const tool = await prisma.$transaction(async (tx) => {
+      const createdTool = await tx.tool.create({
+        data: {
+          name,
+          slug,
+          description,
+          longDescription: longDescription || description,
+          overview: overview?.trim() || null,
+          features: normalizeStringArray(features),
+          pros: normalizeStringArray(pros),
+          cons: normalizeStringArray(cons),
+          pricingDetails: pricingDetails?.trim() || null,
+          alternativeTools: normalizeStringArray(alternativeTools),
+          videoUrl: videoUrl?.trim() || null,
+          conclusion: conclusion?.trim() || null,
+          logoUrl,
+          websiteUrl,
+          affiliateUrl,
+          pricingModel,
+          priceRange,
+          categoryId,
+        },
+        include: {
+          category: true,
+        },
+      });
 
-    // Update category tool count
-    await prisma.category.update({
-      where: { id: categoryId },
-      data: { toolCount: { increment: 1 } },
+      await tx.category.update({
+        where: { id: categoryId },
+        data: { toolCount: { increment: 1 } },
+      });
+
+      return createdTool;
     });
 
     return NextResponse.json(tool, { status: 201 });

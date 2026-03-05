@@ -78,7 +78,7 @@ Complete these before starting new feature work.
 - [x] Fix `/auth/callback` cookie persistence by writing cookies on `NextResponse`.
 - [x] Add server-side input validation (Zod) for all write routes.
 - [x] Enforce pagination/query clamps (`page >= 1`, `1 <= limit <= 100`) across list APIs.
-- [ ] Wrap multi-step Prisma writes in transactions to avoid partial updates.
+- [x] Wrap multi-step Prisma writes in transactions to avoid partial updates.
 - [ ] Add CI workflow with `lint`, `typecheck`, `test`, and `build` gates.
 - [ ] Separate analytics view tracking from tool detail reads.
 - [ ] Implement Dashboard Settings submit flow with real API persistence.

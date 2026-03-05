@@ -128,22 +128,24 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Review not found' }, { status: 404 });
     }
 
-    await prisma.review.delete({
-      where: { id: review.id },
-    });
+    await prisma.$transaction(async (tx) => {
+      await tx.review.delete({
+        where: { id: review.id },
+      });
 
-    const aggregate = await prisma.review.aggregate({
-      where: { toolId: review.toolId },
-      _avg: { rating: true },
-      _count: { id: true },
-    });
+      const aggregate = await tx.review.aggregate({
+        where: { toolId: review.toolId },
+        _avg: { rating: true },
+        _count: { id: true },
+      });
 
-    await prisma.tool.update({
-      where: { id: review.toolId },
-      data: {
-        rating: aggregate._avg.rating ?? 0,
-        reviewCount: aggregate._count.id,
-      },
+      await tx.tool.update({
+        where: { id: review.toolId },
+        data: {
+          rating: aggregate._avg.rating ?? 0,
+          reviewCount: aggregate._count.id,
+        },
+      });
     });
 
     return NextResponse.json({ message: 'Review deleted successfully' });
