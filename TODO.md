@@ -81,13 +81,13 @@ Complete these before starting new feature work.
 - [x] Wrap multi-step Prisma writes in transactions to avoid partial updates.
 - [x] Add CI workflow with `lint`, `typecheck`, `test`, and `build` gates.
 - [x] Separate analytics view tracking from tool detail reads.
-- [ ] Implement Dashboard Settings submit flow with real API persistence.
+- [x] Implement Dashboard Settings submit flow with real API persistence.
 
 ### Quick Wins (1 day)
 - [x] Add admin guards to unprotected tool/category mutation routes.
 - [x] Add pagination clamps and NaN guards in tools/reviews/admin list APIs.
 - [x] Repair OAuth callback cookie handling.
-- [ ] Connect Dashboard settings form to `/api/user/profile`.
+- [x] Connect Dashboard settings form to `/api/user/profile`.
 
 ### Short-Term (1 week)
 - [ ] Centralize authZ (`requireAdmin`) and trusted role resolution.

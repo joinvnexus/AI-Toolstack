@@ -62,6 +62,11 @@ function DashboardPageContent() {
   const [reviews, setReviews] = useState<UserReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<DashboardTab>('bookmarks');
+  const [settingsName, setSettingsName] = useState('');
+  const [settingsAvatarUrl, setSettingsAvatarUrl] = useState('');
+  const [settingsSaving, setSettingsSaving] = useState(false);
+  const [settingsError, setSettingsError] = useState('');
+  const [settingsSuccess, setSettingsSuccess] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -75,12 +80,17 @@ function DashboardPageContent() {
           return;
         }
 
+        const initialName = authUser.user_metadata?.name || '';
+        const initialAvatarUrl = authUser.user_metadata?.avatar_url || '';
+
         setUser({
           id: authUser.id,
           email: authUser.email || '',
-          name: authUser.user_metadata?.name || null,
-          avatarUrl: authUser.user_metadata?.avatar_url || null,
+          name: initialName || null,
+          avatarUrl: initialAvatarUrl || null,
         });
+        setSettingsName(initialName);
+        setSettingsAvatarUrl(initialAvatarUrl);
 
         const [bookmarksRes, reviewsRes] = await Promise.all([
           fetch('/api/user/bookmarks'),
@@ -118,6 +128,59 @@ function DashboardPageContent() {
   const handleTabChange = (tabId: DashboardTab) => {
     setActiveTab(tabId);
     router.push(`/dashboard?tab=${tabId}`);
+  };
+
+  const handleSettingsSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmedName = settingsName.trim();
+
+    if (!trimmedName) {
+      setSettingsError('Name cannot be empty');
+      setSettingsSuccess('');
+      return;
+    }
+
+    setSettingsSaving(true);
+    setSettingsError('');
+    setSettingsSuccess('');
+
+    try {
+      const payload: { name: string; avatarUrl?: string } = { name: trimmedName };
+      const trimmedAvatarUrl = settingsAvatarUrl.trim();
+      if (trimmedAvatarUrl) {
+        payload.avatarUrl = trimmedAvatarUrl;
+      }
+
+      const response = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        setSettingsError(data.error || 'Failed to update profile');
+        return;
+      }
+
+      setUser((currentUser) =>
+        currentUser
+          ? {
+              ...currentUser,
+              name: data.name || null,
+              avatarUrl: data.avatarUrl || null,
+            }
+          : currentUser
+      );
+      setSettingsName(data.name || '');
+      setSettingsAvatarUrl(data.avatarUrl || '');
+      setSettingsSuccess('Profile updated successfully');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      setSettingsError('Failed to update profile');
+    } finally {
+      setSettingsSaving(false);
+    }
   };
 
   if (loading) {
@@ -259,12 +322,31 @@ function DashboardPageContent() {
       {activeTab === 'settings' && (
         <div className="ui-card p-6">
           <h2 className="mb-4 text-lg font-semibold">Account Settings</h2>
-          <form className="max-w-md space-y-4">
+          <form onSubmit={handleSettingsSubmit} className="max-w-md space-y-4">
             <div>
               <label className="mb-2 block text-sm font-medium">Name</label>
               <input
                 type="text"
-                defaultValue={user.name || ''}
+                value={settingsName}
+                onChange={(event) => {
+                  setSettingsName(event.target.value);
+                  setSettingsError('');
+                  setSettingsSuccess('');
+                }}
+                className="ui-input w-full"
+              />
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-medium">Avatar URL</label>
+              <input
+                type="url"
+                value={settingsAvatarUrl}
+                onChange={(event) => {
+                  setSettingsAvatarUrl(event.target.value);
+                  setSettingsError('');
+                  setSettingsSuccess('');
+                }}
+                placeholder="https://example.com/avatar.png"
                 className="ui-input w-full"
               />
             </div>
@@ -277,10 +359,14 @@ function DashboardPageContent() {
                 className="ui-input w-full cursor-not-allowed opacity-60"
               />
             </div>
+            {settingsError && <p className="text-sm text-red-400">{settingsError}</p>}
+            {settingsSuccess && <p className="text-sm text-emerald-400">{settingsSuccess}</p>}
             <button
               type="submit"
-              className="rounded-lg bg-brand-primary px-4 py-2 text-sm font-medium hover:bg-brand-primary/90"
+              disabled={settingsSaving}
+              className="inline-flex items-center gap-2 rounded-lg bg-brand-primary px-4 py-2 text-sm font-medium hover:bg-brand-primary/90 disabled:cursor-not-allowed disabled:opacity-70"
             >
+              {settingsSaving && <Loader2 className="h-4 w-4 animate-spin" />}
               Save Changes
             </button>
           </form>
