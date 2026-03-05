@@ -4,6 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test",
     "build": "prisma generate && next build",
     "start": "next start",
     "db:migrate": "prisma migrate deploy"
@@ -29,6 +32,8 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-config-next": "14.2.35",
     "@tailwindcss/postcss": "^4.2.1",
     "autoprefixer": "^10.4.27",
     "postcss": "^8.5.6",
