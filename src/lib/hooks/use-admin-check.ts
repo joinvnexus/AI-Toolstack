@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { resolveRoleFromAppMetadata } from '@/lib/auth/role';
 
 export function useAdminCheck() {
   const router = useRouter();
@@ -22,7 +23,7 @@ export function useAdminCheck() {
         }
 
         // Get user role from metadata or profile
-        const role = authUser.user_metadata?.role || 'USER';
+        const role = resolveRoleFromAppMetadata(authUser.app_metadata);
         
         setUser({
           id: authUser.id,

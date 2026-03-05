@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/client';
 import { Mail, Lock, Loader2 } from 'lucide-react';
+import { resolveRoleFromAppMetadata } from '@/lib/auth/role';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -48,8 +49,7 @@ export default function LoginPage() {
     }
 
     const { data: { user } } = await supabase.auth.getUser();
-    const userRole = user?.user_metadata?.role;
-    const isAdmin = typeof userRole === 'string' && userRole.toUpperCase() === 'ADMIN';
+    const isAdmin = resolveRoleFromAppMetadata(user?.app_metadata) === 'ADMIN';
 
     router.push(isAdmin ? '/admin' : '/dashboard');
     router.refresh();

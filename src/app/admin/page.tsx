@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { Loader2, Users, Wrench, FileText, Star, AlertCircle } from 'lucide-react';
+import { resolveRoleFromAppMetadata } from '@/lib/auth/role';
 
 type Stats = {
   totalTools: number;
@@ -66,7 +67,7 @@ export default function AdminPage() {
           }
         } else {
           // If profile fetch fails, check user metadata
-          const role = authUser.user_metadata?.role || 'USER';
+          const role = resolveRoleFromAppMetadata(authUser.app_metadata);
           setUser({
             id: authUser.id,
             email: authUser.email || '',

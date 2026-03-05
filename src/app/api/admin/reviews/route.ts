@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
+import { resolveRoleFromAppMetadata } from '@/lib/auth/role';
 
 async function requireAdmin() {
   const cookieStore = await cookies();
@@ -28,7 +29,7 @@ async function requireAdmin() {
     return { error: NextResponse.json({ error: 'Not authenticated' }, { status: 401 }) };
   }
 
-  const role = String(user.user_metadata?.role || 'USER').toUpperCase();
+  const role = resolveRoleFromAppMetadata(user.app_metadata);
   if (role !== 'ADMIN') {
     return { error: NextResponse.json({ error: 'Not authorized' }, { status: 403 }) };
   }

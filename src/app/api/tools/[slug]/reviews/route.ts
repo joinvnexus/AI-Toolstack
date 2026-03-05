@@ -2,14 +2,13 @@ import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
-
-const resolveRole = (role: unknown): 'USER' | 'ADMIN' =>
-  typeof role === 'string' && role.toUpperCase() === 'ADMIN' ? 'ADMIN' : 'USER';
+import { resolveRoleFromAppMetadata } from '@/lib/auth/role';
 
 const ensurePrismaUser = async (user: {
   id: string;
   email?: string | null;
-  user_metadata?: { name?: string; avatar_url?: string; role?: string };
+  user_metadata?: { name?: string; avatar_url?: string };
+  app_metadata?: Record<string, unknown>;
 }) => {
   await prisma.user.upsert({
     where: { id: user.id },
@@ -18,13 +17,13 @@ const ensurePrismaUser = async (user: {
       email: user.email || `${user.id}@local.invalid`,
       name: user.user_metadata?.name || null,
       avatarUrl: user.user_metadata?.avatar_url || null,
-      role: resolveRole(user.user_metadata?.role),
+      role: resolveRoleFromAppMetadata(user.app_metadata),
     },
     update: {
       email: user.email || `${user.id}@local.invalid`,
       name: user.user_metadata?.name || null,
       avatarUrl: user.user_metadata?.avatar_url || null,
-      role: resolveRole(user.user_metadata?.role),
+      role: resolveRoleFromAppMetadata(user.app_metadata),
     },
   });
 };

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { resolveRoleFromAppMetadata } from '@/lib/auth/role';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,7 +35,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const userRole = authUser.user_metadata?.role || 'USER';
+    const userRole = resolveRoleFromAppMetadata(authUser.app_metadata);
     if (userRole !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Not authorized' },
@@ -72,7 +73,7 @@ export async function GET(request: Request) {
       return NextResponse.json({
         id: user.id,
         email: user.email,
-        role: user.user_metadata?.role || 'USER',
+        role: resolveRoleFromAppMetadata(user.app_metadata),
         created_at: user.created_at,
       });
     }
@@ -82,7 +83,7 @@ export async function GET(request: Request) {
       users.users.map(u => ({
         id: u.id,
         email: u.email,
-        role: u.user_metadata?.role || 'USER',
+        role: resolveRoleFromAppMetadata(u.app_metadata),
         created_at: u.created_at,
       }))
     );
@@ -132,7 +133,7 @@ export async function PUT(request: Request) {
       );
     }
 
-    const userRole = authUser.user_metadata?.role || 'USER';
+    const userRole = resolveRoleFromAppMetadata(authUser.app_metadata);
     if (userRole !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Not authorized' },
@@ -171,7 +172,7 @@ export async function PUT(request: Request) {
     const { data, error } = await (adminSupabase.auth.admin as any).updateUserById(
       user.id,
       { 
-        user_metadata: { 
+        app_metadata: { 
           role: role 
         } 
       }
@@ -187,7 +188,7 @@ export async function PUT(request: Request) {
     return NextResponse.json({
       id: data.user.id,
       email: data.user.email,
-      role: data.user.user_metadata?.role || role,
+      role: resolveRoleFromAppMetadata(data.user.app_metadata),
       created_at: data.user.created_at,
     });
   } catch (error) {

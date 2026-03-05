@@ -1,12 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { resolveRoleFromAppMetadata } from '@/lib/auth/role';
 
 type RequireAdminResult =
   | { ok: true; userId: string }
   | { ok: false; response: NextResponse };
-
-const resolveRole = (role: unknown): 'USER' | 'ADMIN' =>
-  typeof role === 'string' && role.toUpperCase() === 'ADMIN' ? 'ADMIN' : 'USER';
 
 export async function requireAdmin(): Promise<RequireAdminResult> {
   const supabase = await createClient();
@@ -22,7 +20,7 @@ export async function requireAdmin(): Promise<RequireAdminResult> {
     };
   }
 
-  const role = resolveRole(user.app_metadata?.role ?? user.user_metadata?.role);
+  const role = resolveRoleFromAppMetadata(user.app_metadata);
   if (role !== 'ADMIN') {
     return {
       ok: false,

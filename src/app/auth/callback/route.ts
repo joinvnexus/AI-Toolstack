@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
+import { resolveRoleFromAppMetadata } from '@/lib/auth/role';
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -34,8 +35,7 @@ export async function GET(request: Request) {
       }
 
       const { data: { user } } = await supabase.auth.getUser();
-      const userRole = user?.user_metadata?.role;
-      const isAdmin = typeof userRole === 'string' && userRole.toUpperCase() === 'ADMIN';
+      const isAdmin = resolveRoleFromAppMetadata(user?.app_metadata) === 'ADMIN';
       const targetPath = isAdmin ? '/admin' : '/dashboard';
 
       return NextResponse.redirect(`${origin}${targetPath}`);

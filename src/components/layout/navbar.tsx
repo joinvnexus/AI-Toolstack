@@ -20,7 +20,7 @@ type AppRole = 'USER' | 'ADMIN';
 const resolveUserRole = (authUser: SupabaseUser | null): AppRole => {
   if (!authUser) return 'USER';
 
-  const metadataRole = authUser.user_metadata?.role ?? authUser.app_metadata?.role;
+  const metadataRole = authUser.app_metadata?.role;
   if (typeof metadataRole !== 'string') return 'USER';
 
   return metadataRole.toUpperCase() === 'ADMIN' ? 'ADMIN' : 'USER';

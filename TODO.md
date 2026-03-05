@@ -73,7 +73,7 @@ Complete these before starting new feature work.
 
 ### Top 10 Priority Fixes (Execution Order)
 - [x] Protect tools/categories write APIs with strict server-side admin guard.
-- [ ] Replace `user_metadata.role` authorization trust with server-managed role source.
+- [x] Replace `user_metadata.role` authorization trust with server-managed role source.
 - [ ] Upgrade `next` to a patched version and re-run `npm audit`.
 - [ ] Fix `/auth/callback` cookie persistence by writing cookies on `NextResponse`.
 - [ ] Add server-side input validation (Zod) for all write routes.

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { resolveRoleFromAppMetadata } from '@/lib/auth/role';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,8 +31,7 @@ export async function GET() {
       );
     }
 
-    // Get role from user metadata (set in Supabase)
-    const role = user.user_metadata?.role || 'USER';
+    const role = resolveRoleFromAppMetadata(user.app_metadata);
 
     return NextResponse.json({
       id: user.id,

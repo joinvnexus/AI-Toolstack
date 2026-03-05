@@ -219,7 +219,7 @@ export default function AdminSettingsPage() {
         <div className="rounded-lg bg-black/50 p-4 text-sm text-white">
           <p className="text-green-400">-- Replace with user's email</p>
           <p>update auth.users</p>
-          <p>set raw_user_meta_data = jsonb_set(raw_user_meta_data, &apos;{"{role}"}&apos;, &apos;"ADMIN"&apos;)</p>
+          <p>set raw_app_meta_data = jsonb_set(raw_app_meta_data, &apos;{"{role}"}&apos;, &apos;"ADMIN"&apos;)</p>
           <p>where email = &apos;your-email@example.com&apos;;</p>
         </div>
       </div>

@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import type { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
+import { resolveRoleFromAppMetadata } from '@/lib/auth/role';
 
 const parsePrismaErrorCode = (error: unknown): string | null => {
   if (typeof error !== 'object' || error === null || !('code' in error)) {
@@ -65,7 +66,7 @@ const requireAdmin = async (): Promise<AdminCheckResult> => {
     return { ok: false, status: 401, message: 'Not authenticated' };
   }
 
-  const role = String(user.user_metadata?.role || user.app_metadata?.role || 'USER').toUpperCase();
+  const role = resolveRoleFromAppMetadata(user.app_metadata);
   if (role !== 'ADMIN') {
     return { ok: false, status: 403, message: 'Not authorized' };
   }
