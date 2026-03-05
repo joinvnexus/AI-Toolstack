@@ -10,6 +10,11 @@ const createReviewSchema = z.object({
   content: z.string().trim().min(1, 'Review content is required'),
 });
 
+const parsePositiveInt = (value: string | null, fallback: number): number => {
+  const parsed = Number.parseInt(value || '', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
 const ensurePrismaUser = async (user: {
   id: string;
   email?: string | null;
@@ -40,8 +45,8 @@ export async function GET(
 ) {
   try {
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
+    const page = parsePositiveInt(searchParams.get('page'), 1);
+    const limit = Math.min(100, parsePositiveInt(searchParams.get('limit'), 10));
 
     const tool = await prisma.tool.findUnique({
       where: { slug: params.slug },

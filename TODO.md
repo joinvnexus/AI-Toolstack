@@ -77,7 +77,7 @@ Complete these before starting new feature work.
 - [x] Upgrade `next` to a patched version and re-run `npm audit`.
 - [x] Fix `/auth/callback` cookie persistence by writing cookies on `NextResponse`.
 - [x] Add server-side input validation (Zod) for all write routes.
-- [ ] Enforce pagination/query clamps (`page >= 1`, `1 <= limit <= 100`) across list APIs.
+- [x] Enforce pagination/query clamps (`page >= 1`, `1 <= limit <= 100`) across list APIs.
 - [ ] Wrap multi-step Prisma writes in transactions to avoid partial updates.
 - [ ] Add CI workflow with `lint`, `typecheck`, `test`, and `build` gates.
 - [ ] Separate analytics view tracking from tool detail reads.
@@ -85,7 +85,7 @@ Complete these before starting new feature work.
 
 ### Quick Wins (1 day)
 - [x] Add admin guards to unprotected tool/category mutation routes.
-- [ ] Add pagination clamps and NaN guards in tools/reviews/admin list APIs.
+- [x] Add pagination clamps and NaN guards in tools/reviews/admin list APIs.
 - [x] Repair OAuth callback cookie handling.
 - [ ] Connect Dashboard settings form to `/api/user/profile`.
 

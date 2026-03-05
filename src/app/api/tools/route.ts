@@ -10,6 +10,11 @@ const normalizeStringArray = (value: unknown): string[] => {
     .filter(Boolean);
 };
 
+const parsePositiveInt = (value: string | null, fallback: number): number => {
+  const parsed = Number.parseInt(value || '', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
 const createToolSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
   description: z.string().trim().min(1, 'Description is required'),
@@ -33,11 +38,12 @@ const createToolSchema = z.object({
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '12');
+    const page = parsePositiveInt(searchParams.get('page'), 1);
+    const limit = Math.min(100, parsePositiveInt(searchParams.get('limit'), 12));
     const category = searchParams.get('category');
     const pricing = searchParams.get('pricing');
-    const minRating = parseFloat(searchParams.get('minRating') || '0');
+    const parsedMinRating = Number.parseFloat(searchParams.get('minRating') || '0');
+    const minRating = Number.isFinite(parsedMinRating) ? parsedMinRating : 0;
     const search = searchParams.get('search');
     const sort = searchParams.get('sort') || 'rating';
 

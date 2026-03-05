@@ -9,6 +9,11 @@ const deleteReviewSchema = z.object({
   id: z.string().trim().min(1, 'Review ID is required'),
 });
 
+const parsePositiveInt = (value: string | null, fallback: number): number => {
+  const parsed = Number.parseInt(value || '', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
 async function requireAdmin() {
   const cookieStore = await cookies();
 
@@ -48,8 +53,8 @@ export async function GET(request: Request) {
     if ('error' in auth) return auth.error;
 
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1', 10);
-    const limit = parseInt(searchParams.get('limit') || '50', 10);
+    const page = parsePositiveInt(searchParams.get('page'), 1);
+    const limit = Math.min(100, parsePositiveInt(searchParams.get('limit'), 50));
 
     const [reviews, total, distribution] = await Promise.all([
       prisma.review.findMany({
