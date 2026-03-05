@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { z } from 'zod';
 import { resolveRoleFromAppMetadata } from '@/lib/auth/role';
 
 export const dynamic = 'force-dynamic';
+
+const updateUserRoleSchema = z.object({
+  email: z.string().email('Valid email is required'),
+  role: z.enum(['USER', 'ADMIN']),
+});
 
 export async function GET(request: Request) {
   try {
@@ -98,15 +104,12 @@ export async function GET(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const body = await request.json();
-    const { email, role } = body;
-
-    if (!email || !role) {
-      return NextResponse.json(
-        { error: 'Email and role are required' },
-        { status: 400 }
-      );
+    const parsedBody = updateUserRoleSchema.safeParse(await request.json());
+    if (!parsedBody.success) {
+      const firstIssue = parsedBody.error.issues[0];
+      return NextResponse.json({ error: firstIssue?.message || 'Invalid request body' }, { status: 400 });
     }
+    const { email, role } = parsedBody.data;
 
     const cookieStore = await cookies();
     

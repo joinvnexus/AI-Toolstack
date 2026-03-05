@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { z } from 'zod';
 import prisma from '@/lib/prisma';
 import { resolveRoleFromAppMetadata } from '@/lib/auth/role';
 
@@ -26,6 +27,16 @@ const estimateReadTime = (content: string): number => {
   const words = content.trim().split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.ceil(words / wordsPerMinute));
 };
+
+const updateBlogPostSchema = z.object({
+  title: z.string().trim().min(1, 'Title is required').optional(),
+  content: z.string().trim().min(1, 'Content is required').optional(),
+  excerpt: z.string().optional(),
+  featuredImage: z.string().url('Featured image URL must be valid').optional(),
+  slug: z.string().optional(),
+  categoryIds: z.array(z.string().trim().min(1)).optional(),
+  published: z.boolean().optional(),
+});
 
 const requireAdmin = async (): Promise<{ ok: true } | { ok: false; status: 401 | 403; message: string }> => {
   const cookieStore = await cookies();
@@ -117,14 +128,14 @@ export async function PUT(request: Request, { params }: { params: { slug: string
       return NextResponse.json({ error: 'Blog post not found' }, { status: 404 });
     }
 
-    const body = await request.json();
-    const title = typeof body.title === 'string' ? body.title.trim() : undefined;
-    const content = typeof body.content === 'string' ? body.content.trim() : undefined;
-    const excerpt = typeof body.excerpt === 'string' ? body.excerpt.trim() : undefined;
-    const featuredImage = typeof body.featuredImage === 'string' ? body.featuredImage.trim() : undefined;
-    const slugInput = typeof body.slug === 'string' ? body.slug : undefined;
-    const categoryIds = Array.isArray(body.categoryIds) ? body.categoryIds : undefined;
-    const publishedProvided = typeof body.published === 'boolean';
+    const parsedBody = updateBlogPostSchema.safeParse(await request.json());
+    if (!parsedBody.success) {
+      const firstIssue = parsedBody.error.issues[0];
+      return NextResponse.json({ error: firstIssue?.message || 'Invalid request body' }, { status: 400 });
+    }
+
+    const { title, content, excerpt, featuredImage, slug: slugInput, categoryIds, published } = parsedBody.data;
+    const publishedProvided = typeof published === 'boolean';
 
     const nextSlug = slugInput !== undefined ? slugify(slugInput) : undefined;
     if (slugInput !== undefined && !nextSlug) {
@@ -133,10 +144,10 @@ export async function PUT(request: Request, { params }: { params: { slug: string
 
     let nextPublishedAt = existingPost.publishedAt;
     if (publishedProvided) {
-      if (body.published === true && !existingPost.published) {
+      if (published === true && !existingPost.published) {
         nextPublishedAt = new Date();
       }
-      if (body.published === false) {
+      if (published === false) {
         nextPublishedAt = null;
       }
     }
@@ -150,7 +161,7 @@ export async function PUT(request: Request, { params }: { params: { slug: string
         excerpt: excerpt === undefined ? undefined : excerpt || null,
         featuredImage: featuredImage === undefined ? undefined : featuredImage || null,
         readTime: content ? estimateReadTime(content) : undefined,
-        published: publishedProvided ? body.published : undefined,
+        published: publishedProvided ? published : undefined,
         publishedAt: publishedProvided ? nextPublishedAt : undefined,
         categories:
           categoryIds !== undefined

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import prisma from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth/require-admin';
 
@@ -8,6 +9,26 @@ const normalizeStringArray = (value: unknown): string[] => {
     .map((item) => (typeof item === 'string' ? item.trim() : ''))
     .filter(Boolean);
 };
+
+const createToolSchema = z.object({
+  name: z.string().trim().min(1, 'Name is required'),
+  description: z.string().trim().min(1, 'Description is required'),
+  longDescription: z.string().optional(),
+  overview: z.string().optional(),
+  features: z.array(z.string()).optional(),
+  pros: z.array(z.string()).optional(),
+  cons: z.array(z.string()).optional(),
+  pricingDetails: z.string().optional(),
+  alternativeTools: z.array(z.string()).optional(),
+  videoUrl: z.string().url('Video URL must be valid').optional(),
+  conclusion: z.string().optional(),
+  logoUrl: z.string().url('Logo URL must be valid'),
+  websiteUrl: z.string().url('Website URL must be valid'),
+  affiliateUrl: z.string().url('Affiliate URL must be valid').optional(),
+  pricingModel: z.enum(['FREE', 'PAID', 'FREEMIUM']),
+  priceRange: z.string().optional(),
+  categoryId: z.string().trim().min(1, 'Category is required'),
+});
 
 export async function GET(request: Request) {
   try {
@@ -82,7 +103,12 @@ export async function POST(request: Request) {
     const admin = await requireAdmin();
     if (!admin.ok) return admin.response;
 
-    const body = await request.json();
+    const parsedBody = createToolSchema.safeParse(await request.json());
+    if (!parsedBody.success) {
+      const firstIssue = parsedBody.error.issues[0];
+      return NextResponse.json({ error: firstIssue?.message || 'Invalid request body' }, { status: 400 });
+    }
+
     const {
       name,
       description,
@@ -101,7 +127,7 @@ export async function POST(request: Request) {
       pricingModel,
       priceRange,
       categoryId,
-    } = body;
+    } = parsedBody.data;
 
     const slug = name
       .toLowerCase()
@@ -127,7 +153,7 @@ export async function POST(request: Request) {
         logoUrl,
         websiteUrl,
         affiliateUrl,
-        pricingModel: pricingModel.toUpperCase(),
+        pricingModel,
         priceRange,
         categoryId,
       },

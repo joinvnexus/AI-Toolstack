@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { z } from 'zod';
 import prisma from '@/lib/prisma';
 import { resolveRoleFromAppMetadata } from '@/lib/auth/role';
+
+const deleteReviewSchema = z.object({
+  id: z.string().trim().min(1, 'Review ID is required'),
+});
 
 async function requireAdmin() {
   const cookieStore = await cookies();
@@ -102,12 +107,12 @@ export async function DELETE(request: Request) {
     const auth = await requireAdmin();
     if ('error' in auth) return auth.error;
 
-    const body = await request.json();
-    const reviewId = String(body?.id || '');
-
-    if (!reviewId) {
-      return NextResponse.json({ error: 'Review ID is required' }, { status: 400 });
+    const parsedBody = deleteReviewSchema.safeParse(await request.json());
+    if (!parsedBody.success) {
+      const firstIssue = parsedBody.error.issues[0];
+      return NextResponse.json({ error: firstIssue?.message || 'Invalid request body' }, { status: 400 });
     }
+    const { id: reviewId } = parsedBody.data;
 
     const review = await prisma.review.findUnique({
       where: { id: reviewId },

@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import prisma from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth/require-admin';
+
+const createCategorySchema = z.object({
+  name: z.string().trim().min(1, 'Name is required'),
+  description: z.string().optional(),
+  icon: z.string().optional(),
+});
 
 export async function GET() {
   try {
@@ -23,8 +30,13 @@ export async function POST(request: Request) {
     const admin = await requireAdmin();
     if (!admin.ok) return admin.response;
 
-    const body = await request.json();
-    const { name, description, icon } = body;
+    const parsedBody = createCategorySchema.safeParse(await request.json());
+    if (!parsedBody.success) {
+      const firstIssue = parsedBody.error.issues[0];
+      return NextResponse.json({ error: firstIssue?.message || 'Invalid request body' }, { status: 400 });
+    }
+
+    const { name, description, icon } = parsedBody.data;
 
     const slug = name
       .toLowerCase()

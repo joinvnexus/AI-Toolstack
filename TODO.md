@@ -76,7 +76,7 @@ Complete these before starting new feature work.
 - [x] Replace `user_metadata.role` authorization trust with server-managed role source.
 - [x] Upgrade `next` to a patched version and re-run `npm audit`.
 - [x] Fix `/auth/callback` cookie persistence by writing cookies on `NextResponse`.
-- [ ] Add server-side input validation (Zod) for all write routes.
+- [x] Add server-side input validation (Zod) for all write routes.
 - [ ] Enforce pagination/query clamps (`page >= 1`, `1 <= limit <= 100`) across list APIs.
 - [ ] Wrap multi-step Prisma writes in transactions to avoid partial updates.
 - [ ] Add CI workflow with `lint`, `typecheck`, `test`, and `build` gates.

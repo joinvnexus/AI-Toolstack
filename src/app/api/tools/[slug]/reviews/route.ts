@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { z } from 'zod';
 import prisma from '@/lib/prisma';
 import { resolveRoleFromAppMetadata } from '@/lib/auth/role';
+
+const createReviewSchema = z.object({
+  rating: z.coerce.number().int().min(1, 'Rating must be between 1 and 5').max(5, 'Rating must be between 1 and 5'),
+  content: z.string().trim().min(1, 'Review content is required'),
+});
 
 const ensurePrismaUser = async (user: {
   id: string;
@@ -157,28 +163,17 @@ export async function POST(
       );
     }
 
-    const body = await request.json();
-    const { rating, content } = body;
-
-    const normalizedRating = Number(rating);
-    if (!Number.isFinite(normalizedRating) || normalizedRating < 1 || normalizedRating > 5) {
-      return NextResponse.json(
-        { error: 'Rating must be between 1 and 5' },
-        { status: 400 }
-      );
+    const parsedBody = createReviewSchema.safeParse(await request.json());
+    if (!parsedBody.success) {
+      const firstIssue = parsedBody.error.issues[0];
+      return NextResponse.json({ error: firstIssue?.message || 'Invalid request body' }, { status: 400 });
     }
-
-    if (!content || !String(content).trim()) {
-      return NextResponse.json(
-        { error: 'Review content is required' },
-        { status: 400 }
-      );
-    }
+    const { rating, content } = parsedBody.data;
 
     const review = await prisma.review.create({
       data: {
-        rating: normalizedRating,
-        content: String(content).trim(),
+        rating,
+        content,
         userId: user.id,
         toolId: tool.id,
       },

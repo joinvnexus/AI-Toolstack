@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import type { Prisma } from '@prisma/client';
+import { z } from 'zod';
 import prisma from '@/lib/prisma';
 import { resolveRoleFromAppMetadata } from '@/lib/auth/role';
 
@@ -27,6 +28,16 @@ const estimateReadTime = (content: string): number => {
   const words = content.trim().split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.ceil(words / wordsPerMinute));
 };
+
+const createBlogPostSchema = z.object({
+  title: z.string().trim().min(1, 'Title is required'),
+  content: z.string().trim().min(1, 'Content is required'),
+  excerpt: z.string().optional(),
+  featuredImage: z.string().url('Featured image URL must be valid').optional(),
+  slug: z.string().optional(),
+  categoryIds: z.array(z.string().trim().min(1)).optional(),
+  published: z.boolean().optional(),
+});
 
 type AdminCheckResult = {
   ok: true;
@@ -169,23 +180,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: adminResult.message }, { status: adminResult.status });
     }
 
-    const body = await request.json();
-    const title = String(body.title || '').trim();
-    const content = String(body.content || '').trim();
-    const excerpt = typeof body.excerpt === 'string' ? body.excerpt.trim() : '';
-    const featuredImage = typeof body.featuredImage === 'string' ? body.featuredImage.trim() : '';
-    const rawSlug = typeof body.slug === 'string' ? body.slug : '';
-    const categoryIds = Array.isArray(body.categoryIds) ? body.categoryIds : [];
-    const shouldPublish = body.published === true;
-
-    if (!title || !content) {
-      return NextResponse.json({ error: 'Title and content are required' }, { status: 400 });
+    const parsedBody = createBlogPostSchema.safeParse(await request.json());
+    if (!parsedBody.success) {
+      const firstIssue = parsedBody.error.issues[0];
+      return NextResponse.json({ error: firstIssue?.message || 'Invalid request body' }, { status: 400 });
     }
+    const { title, content, excerpt, featuredImage, slug, categoryIds = [], published } = parsedBody.data;
 
-    const resolvedSlug = slugify(rawSlug || title);
+    const resolvedSlug = slugify(slug || title);
     if (!resolvedSlug) {
       return NextResponse.json({ error: 'A valid slug could not be generated' }, { status: 400 });
     }
+    const shouldPublish = published === true;
 
     await prisma.user.upsert({
       where: { id: adminResult.user.id },
@@ -209,8 +215,8 @@ export async function POST(request: Request) {
         title,
         slug: resolvedSlug,
         content,
-        excerpt: excerpt || null,
-        featuredImage: featuredImage || null,
+        excerpt: excerpt?.trim() || null,
+        featuredImage: featuredImage?.trim() || null,
         readTime: estimateReadTime(content),
         authorId: adminResult.user.id,
         published: shouldPublish,

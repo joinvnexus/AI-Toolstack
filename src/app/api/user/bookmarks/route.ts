@@ -1,8 +1,17 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { z } from 'zod';
 import prisma from '@/lib/prisma';
 import { resolveRoleFromAppMetadata } from '@/lib/auth/role';
+
+const createBookmarkSchema = z.object({
+  toolId: z.string().trim().min(1, 'Tool ID is required'),
+});
+
+const deleteBookmarkQuerySchema = z.object({
+  toolId: z.string().trim().min(1, 'Tool ID is required'),
+});
 
 const ensurePrismaUser = async (user: {
   id: string;
@@ -104,8 +113,13 @@ export async function POST(request: Request) {
 
     await ensurePrismaUser(user);
 
-    const body = await request.json();
-    const { toolId } = body;
+    const parsedBody = createBookmarkSchema.safeParse(await request.json());
+    if (!parsedBody.success) {
+      const firstIssue = parsedBody.error.issues[0];
+      return NextResponse.json({ error: firstIssue?.message || 'Invalid request body' }, { status: 400 });
+    }
+
+    const { toolId } = parsedBody.data;
 
     // Check if tool exists
     const tool = await prisma.tool.findUnique({
@@ -187,14 +201,14 @@ export async function DELETE(request: Request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const toolId = searchParams.get('toolId');
-
-    if (!toolId) {
-      return NextResponse.json(
-        { error: 'Tool ID is required' },
-        { status: 400 }
-      );
+    const parsedQuery = deleteBookmarkQuerySchema.safeParse({
+      toolId: searchParams.get('toolId') || '',
+    });
+    if (!parsedQuery.success) {
+      const firstIssue = parsedQuery.error.issues[0];
+      return NextResponse.json({ error: firstIssue?.message || 'Invalid request query' }, { status: 400 });
     }
+    const { toolId } = parsedQuery.data;
 
     await prisma.bookmark.delete({
       where: {
