@@ -63,12 +63,6 @@ export async function GET(
       );
     }
 
-    // Increment view count
-    await prisma.tool.update({
-      where: { id: tool.id },
-      data: { views: { increment: 1 } },
-    });
-
     return NextResponse.json(tool);
   } catch (error) {
     console.error('Error fetching tool:', error);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
@@ -69,6 +69,7 @@ export default function ToolDetailsPage() {
   const [similarTools, setSimilarTools] = useState<SimilarTool[]>([]);
   const [bookmarkError, setBookmarkError] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
+  const trackedViewSlugRef = useRef<string | null>(null);
   
   // Review form state
   const [reviewRating, setReviewRating] = useState(5);
@@ -132,6 +133,32 @@ export default function ToolDetailsPage() {
 
     fetchSimilarTools();
   }, [tool?.category?.slug, tool?.slug]);
+
+  useEffect(() => {
+    if (!slug || !tool || tool.slug !== slug || trackedViewSlugRef.current === slug) {
+      return;
+    }
+
+    trackedViewSlugRef.current = slug;
+
+    const trackView = async () => {
+      try {
+        const res = await fetch(`/api/tools/${slug}/view`, { method: 'POST' });
+        if (!res.ok) return;
+
+        const data = await res.json();
+        if (typeof data.views === 'number') {
+          setTool((current) =>
+            current && current.slug === slug ? { ...current, views: data.views } : current
+          );
+        }
+      } catch (error) {
+        console.error('Error tracking tool view:', error);
+      }
+    };
+
+    void trackView();
+  }, [slug, tool]);
 
   useEffect(() => {
     const checkBookmarkStatus = async () => {

@@ -80,7 +80,7 @@ Complete these before starting new feature work.
 - [x] Enforce pagination/query clamps (`page >= 1`, `1 <= limit <= 100`) across list APIs.
 - [x] Wrap multi-step Prisma writes in transactions to avoid partial updates.
 - [x] Add CI workflow with `lint`, `typecheck`, `test`, and `build` gates.
-- [ ] Separate analytics view tracking from tool detail reads.
+- [x] Separate analytics view tracking from tool detail reads.
 - [ ] Implement Dashboard Settings submit flow with real API persistence.
 
 ### Quick Wins (1 day)
