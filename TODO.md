@@ -90,7 +90,7 @@ Complete these before starting new feature work.
 - [x] Connect Dashboard settings form to `/api/user/profile`.
 
 ### Short-Term (1 week)
-- [ ] Centralize authZ (`requireAdmin`) and trusted role resolution.
+- [x] Centralize authZ (`requireAdmin`) and trusted role resolution.
 - [ ] Add baseline tests for auth, admin write routes, and critical user flows.
 - [ ] Add CI pipeline and required status checks.
 - [ ] Remove helper duplication (`slugify`, role checks, user sync).

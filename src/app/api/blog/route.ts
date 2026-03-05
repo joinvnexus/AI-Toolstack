@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import type { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
-import { resolveRoleFromAppMetadata } from '@/lib/auth/role';
+import { requireAdmin } from '@/lib/auth/require-admin';
 
 const parsePrismaErrorCode = (error: unknown): string | null => {
   if (typeof error !== 'object' || error === null || !('code' in error)) {
@@ -39,60 +37,6 @@ const createBlogPostSchema = z.object({
   published: z.boolean().optional(),
 });
 
-type AdminCheckResult = {
-  ok: true;
-  user: {
-    id: string;
-    email: string | null;
-    name: string | null;
-    avatarUrl: string | null;
-  };
-} | {
-  ok: false;
-  status: 401 | 403;
-  message: string;
-};
-
-const requireAdmin = async (): Promise<AdminCheckResult> => {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll() {}
-      }
-    }
-  );
-
-  const {
-    data: { user },
-    error
-  } = await supabase.auth.getUser();
-
-  if (error || !user) {
-    return { ok: false, status: 401, message: 'Not authenticated' };
-  }
-
-  const role = resolveRoleFromAppMetadata(user.app_metadata);
-  if (role !== 'ADMIN') {
-    return { ok: false, status: 403, message: 'Not authorized' };
-  }
-
-  return {
-    ok: true,
-    user: {
-      id: user.id,
-      email: user.email || null,
-      name: user.user_metadata?.name || null,
-      avatarUrl: user.user_metadata?.avatar_url || null
-    }
-  };
-};
-
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -106,10 +50,8 @@ export async function GET(request: Request) {
     const sort = (searchParams.get('sort') || 'latest').toLowerCase();
 
     if (includeDrafts) {
-      const adminResult = await requireAdmin();
-      if (!adminResult.ok) {
-        return NextResponse.json({ error: adminResult.message }, { status: adminResult.status });
-      }
+      const admin = await requireAdmin();
+      if (!admin.ok) return admin.response;
     }
 
     const where: Prisma.BlogPostWhereInput = {};
@@ -175,10 +117,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const adminResult = await requireAdmin();
-    if (!adminResult.ok) {
-      return NextResponse.json({ error: adminResult.message }, { status: adminResult.status });
-    }
+    const admin = await requireAdmin();
+    if (!admin.ok) return admin.response;
 
     const parsedBody = createBlogPostSchema.safeParse(await request.json());
     if (!parsedBody.success) {
@@ -195,18 +135,18 @@ export async function POST(request: Request) {
 
     const post = await prisma.$transaction(async (tx) => {
       await tx.user.upsert({
-        where: { id: adminResult.user.id },
+        where: { id: admin.user.id },
         create: {
-          id: adminResult.user.id,
-          email: adminResult.user.email || `${adminResult.user.id}@local.invalid`,
-          name: adminResult.user.name,
-          avatarUrl: adminResult.user.avatarUrl,
+          id: admin.user.id,
+          email: admin.user.email || `${admin.user.id}@local.invalid`,
+          name: admin.user.name,
+          avatarUrl: admin.user.avatarUrl,
           role: 'ADMIN'
         },
         update: {
-          email: adminResult.user.email || `${adminResult.user.id}@local.invalid`,
-          name: adminResult.user.name,
-          avatarUrl: adminResult.user.avatarUrl,
+          email: admin.user.email || `${admin.user.id}@local.invalid`,
+          name: admin.user.name,
+          avatarUrl: admin.user.avatarUrl,
           role: 'ADMIN'
         }
       });
@@ -219,7 +159,7 @@ export async function POST(request: Request) {
           excerpt: excerpt?.trim() || null,
           featuredImage: featuredImage?.trim() || null,
           readTime: estimateReadTime(content),
-          authorId: adminResult.user.id,
+          authorId: admin.user.id,
           published: shouldPublish,
           publishedAt: shouldPublish ? new Date() : null,
           categories:

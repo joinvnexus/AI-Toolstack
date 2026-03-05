@@ -1,41 +1,13 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
-import { resolveRoleFromAppMetadata } from '@/lib/auth/role';
+import { requireAdmin } from '@/lib/auth/require-admin';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
-          },
-          setAll() {},
-        },
-      }
-    );
-
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-    }
-
-    const role = resolveRoleFromAppMetadata(user.app_metadata);
-    if (role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
-    }
+    const admin = await requireAdmin();
+    if (!admin.ok) return admin.response;
 
     const [totalTools, totalUsers, totalReviews, totalPosts, recentTools, recentUsers, recentReviews, recentPosts] = await Promise.all([
       prisma.tool.count(),

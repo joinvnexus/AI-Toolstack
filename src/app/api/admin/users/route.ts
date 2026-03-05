@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import { z } from 'zod';
 import { resolveRoleFromAppMetadata } from '@/lib/auth/role';
+import { requireAdmin } from '@/lib/auth/require-admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,50 +10,23 @@ const updateUserRoleSchema = z.object({
   role: z.enum(['USER', 'ADMIN']),
 });
 
+const getAdminSupabase = async () => {
+  const { createClient } = await import('@supabase/supabase-js');
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+};
+
 export async function GET(request: Request) {
   try {
+    const admin = await requireAdmin();
+    if (!admin.ok) return admin.response;
+
     const { searchParams } = new URL(request.url);
     const email = searchParams.get('email');
 
-    const cookieStore = await cookies();
-    
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
-          },
-          setAll() {},
-        },
-      }
-    );
-
-    // Check if user is admin
-    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !authUser) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      );
-    }
-
-    const userRole = resolveRoleFromAppMetadata(authUser.app_metadata);
-    if (userRole !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Not authorized' },
-        { status: 403 }
-      );
-    }
-
-    // Use Supabase admin client to search users
-    const { createClient } = await import('@supabase/supabase-js');
-    const adminSupabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const adminSupabase = await getAdminSupabase();
 
     const { data: users, error } = await adminSupabase.auth.admin.listUsers();
     
@@ -104,6 +76,9 @@ export async function GET(request: Request) {
 
 export async function PUT(request: Request) {
   try {
+    const admin = await requireAdmin();
+    if (!admin.ok) return admin.response;
+
     const parsedBody = updateUserRoleSchema.safeParse(await request.json());
     if (!parsedBody.success) {
       const firstIssue = parsedBody.error.issues[0];
@@ -111,45 +86,7 @@ export async function PUT(request: Request) {
     }
     const { email, role } = parsedBody.data;
 
-    const cookieStore = await cookies();
-    
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
-          },
-          setAll() {},
-        },
-      }
-    );
-
-    // Check if user is admin
-    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !authUser) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      );
-    }
-
-    const userRole = resolveRoleFromAppMetadata(authUser.app_metadata);
-    if (userRole !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Not authorized' },
-        { status: 403 }
-      );
-    }
-
-    // Use Supabase admin client to update user
-    const { createClient } = await import('@supabase/supabase-js');
-    const adminSupabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const adminSupabase = await getAdminSupabase();
 
     // First find the user
     const { data: users, error: listError } = await adminSupabase.auth.admin.listUsers();
@@ -170,9 +107,7 @@ export async function PUT(request: Request) {
       );
     }
 
-    // Update user metadata using updateUserById
-    // Using any type to bypass TypeScript strict checking for Supabase admin API
-    const { data, error } = await (adminSupabase.auth.admin as any).updateUserById(
+    const { data, error } = await adminSupabase.auth.admin.updateUserById(
       user.id,
       { 
         app_metadata: { 

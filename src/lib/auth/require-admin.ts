@@ -3,7 +3,15 @@ import { createClient } from '@/lib/supabase/server';
 import { resolveRoleFromAppMetadata } from '@/lib/auth/role';
 
 type RequireAdminResult =
-  | { ok: true; userId: string }
+  | {
+      ok: true;
+      user: {
+        id: string;
+        email: string | null;
+        name: string | null;
+        avatarUrl: string | null;
+      };
+    }
   | { ok: false; response: NextResponse };
 
 export async function requireAdmin(): Promise<RequireAdminResult> {
@@ -28,5 +36,13 @@ export async function requireAdmin(): Promise<RequireAdminResult> {
     };
   }
 
-  return { ok: true, userId: user.id };
+  return {
+    ok: true,
+    user: {
+      id: user.id,
+      email: user.email || null,
+      name: user.user_metadata?.name || null,
+      avatarUrl: user.user_metadata?.avatar_url || null,
+    },
+  };
 }

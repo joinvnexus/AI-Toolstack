@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
-import { resolveRoleFromAppMetadata } from '@/lib/auth/role';
+import { requireAdmin } from '@/lib/auth/require-admin';
 
 const parsePrismaErrorCode = (error: unknown): string | null => {
   if (typeof error !== 'object' || error === null || !('code' in error)) {
@@ -38,38 +36,6 @@ const updateBlogPostSchema = z.object({
   published: z.boolean().optional(),
 });
 
-const requireAdmin = async (): Promise<{ ok: true } | { ok: false; status: 401 | 403; message: string }> => {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll() {}
-      }
-    }
-  );
-
-  const {
-    data: { user },
-    error
-  } = await supabase.auth.getUser();
-
-  if (error || !user) {
-    return { ok: false, status: 401, message: 'Not authenticated' };
-  }
-
-  const role = resolveRoleFromAppMetadata(user.app_metadata);
-  if (role !== 'ADMIN') {
-    return { ok: false, status: 403, message: 'Not authorized' };
-  }
-
-  return { ok: true };
-};
-
 export async function GET(request: Request, { params }: { params: { slug: string } }) {
   try {
     const { searchParams } = new URL(request.url);
@@ -101,9 +67,7 @@ export async function GET(request: Request, { params }: { params: { slug: string
       }
 
       const adminResult = await requireAdmin();
-      if (!adminResult.ok) {
-        return NextResponse.json({ error: adminResult.message }, { status: adminResult.status });
-      }
+      if (!adminResult.ok) return adminResult.response;
     }
 
     return NextResponse.json(post);
@@ -116,9 +80,7 @@ export async function GET(request: Request, { params }: { params: { slug: string
 export async function PUT(request: Request, { params }: { params: { slug: string } }) {
   try {
     const adminResult = await requireAdmin();
-    if (!adminResult.ok) {
-      return NextResponse.json({ error: adminResult.message }, { status: adminResult.status });
-    }
+    if (!adminResult.ok) return adminResult.response;
 
     const existingPost = await prisma.blogPost.findUnique({
       where: { slug: params.slug }
@@ -201,9 +163,7 @@ export async function PUT(request: Request, { params }: { params: { slug: string
 export async function DELETE(_request: Request, { params }: { params: { slug: string } }) {
   try {
     const adminResult = await requireAdmin();
-    if (!adminResult.ok) {
-      return NextResponse.json({ error: adminResult.message }, { status: adminResult.status });
-    }
+    if (!adminResult.ok) return adminResult.response;
 
     const post = await prisma.blogPost.findUnique({
       where: { slug: params.slug }

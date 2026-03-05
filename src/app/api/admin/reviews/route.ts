@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
-import { resolveRoleFromAppMetadata } from '@/lib/auth/role';
+import { requireAdmin } from '@/lib/auth/require-admin';
 
 const deleteReviewSchema = z.object({
   id: z.string().trim().min(1, 'Review ID is required'),
@@ -14,43 +12,10 @@ const parsePositiveInt = (value: string | null, fallback: number): number => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 };
 
-async function requireAdmin() {
-  const cookieStore = await cookies();
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll() {},
-      },
-    }
-  );
-
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user) {
-    return { error: NextResponse.json({ error: 'Not authenticated' }, { status: 401 }) };
-  }
-
-  const role = resolveRoleFromAppMetadata(user.app_metadata);
-  if (role !== 'ADMIN') {
-    return { error: NextResponse.json({ error: 'Not authorized' }, { status: 403 }) };
-  }
-
-  return { user };
-}
-
 export async function GET(request: Request) {
   try {
-    const auth = await requireAdmin();
-    if ('error' in auth) return auth.error;
+    const admin = await requireAdmin();
+    if (!admin.ok) return admin.response;
 
     const { searchParams } = new URL(request.url);
     const page = parsePositiveInt(searchParams.get('page'), 1);
@@ -109,8 +74,8 @@ export async function GET(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const auth = await requireAdmin();
-    if ('error' in auth) return auth.error;
+    const admin = await requireAdmin();
+    if (!admin.ok) return admin.response;
 
     const parsedBody = deleteReviewSchema.safeParse(await request.json());
     if (!parsedBody.success) {
