@@ -6,7 +6,7 @@
     "dev": "next dev",
     "lint": "next lint",
     "typecheck": "prisma generate && tsc --noEmit",
-    "test": "node --test",
+    "test": "vitest run",
     "build": "prisma generate && next build",
     "start": "next start",
     "db:migrate": "prisma migrate deploy"
@@ -38,6 +38,7 @@
     "autoprefixer": "^10.4.27",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.2.1",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vitest": "^3.2.4"
   }
 }

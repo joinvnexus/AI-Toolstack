@@ -48,3 +48,9 @@ prisma/*.db-journal
 
 # Cache
 .cache
+
+# Test artifacts
+coverage
+.vitest
+test-results
+junit.xml
