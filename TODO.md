@@ -92,7 +92,7 @@ Complete these before starting new feature work.
 ### Short-Term (1 week)
 - [x] Centralize authZ (`requireAdmin`) and trusted role resolution.
 - [x] Add baseline tests for auth, admin write routes, and critical user flows.
-- [ ] Add CI pipeline and required status checks.
+- [x] Add CI pipeline and required status checks.
 - [ ] Remove helper duplication (`slugify`, role checks, user sync).
 
 ### Mid-Term (1 month)
