@@ -6,6 +6,7 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
   const next = searchParams.get('next');
+  const response = NextResponse.redirect(`${origin}/dashboard`);
 
   if (code) {
     const supabase = createServerClient(
@@ -21,7 +22,7 @@ export async function GET(request: Request) {
           },
           setAll(cookiesToSet) {
             cookiesToSet.forEach(({ name, value, options }) => {
-              request.headers.set('cookie', `${name}=${value}`);
+              response.cookies.set(name, value, options);
             });
           },
         },
@@ -30,18 +31,21 @@ export async function GET(request: Request) {
     
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      let targetPath = '/dashboard';
       if (next) {
-        return NextResponse.redirect(`${origin}${next}`);
+        targetPath = next;
+      } else {
+        const { data: { user } } = await supabase.auth.getUser();
+        const isAdmin = resolveRoleFromAppMetadata(user?.app_metadata) === 'ADMIN';
+        targetPath = isAdmin ? '/admin' : '/dashboard';
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
-      const isAdmin = resolveRoleFromAppMetadata(user?.app_metadata) === 'ADMIN';
-      const targetPath = isAdmin ? '/admin' : '/dashboard';
-
-      return NextResponse.redirect(`${origin}${targetPath}`);
+      response.headers.set('Location', `${origin}${targetPath}`);
+      return response;
     }
   }
 
   // Return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}/login?error=auth_error`);
+  response.headers.set('Location', `${origin}/login?error=auth_error`);
+  return response;
 }
