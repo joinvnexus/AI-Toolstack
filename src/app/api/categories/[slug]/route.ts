@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requireAdmin } from '@/lib/auth/require-admin';
 
 export async function GET(
   request: Request,
@@ -32,6 +33,9 @@ export async function PUT(
   { params }: { params: { slug: string } }
 ) {
   try {
+    const admin = await requireAdmin();
+    if (!admin.ok) return admin.response;
+
     const body = await request.json();
     const { name, description, icon } = body;
 
@@ -83,6 +87,9 @@ export async function DELETE(
   { params }: { params: { slug: string } }
 ) {
   try {
+    const admin = await requireAdmin();
+    if (!admin.ok) return admin.response;
+
     // Check if category exists
     const existing = await prisma.category.findUnique({
       where: { slug: params.slug },

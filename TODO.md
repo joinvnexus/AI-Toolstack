@@ -1,6 +1,6 @@
 # AI Toolstack - Project Review
 
-Last updated: 2026-03-03
+Last updated: 2026-03-05
 
 ## Completed Features
 
@@ -15,16 +15,16 @@ Last updated: 2026-03-03
 - [x] Homepage (`/`)
 - [x] Tools Directory (`/tools`)
 - [x] Tool Detail Page (`/tools/[slug]`)
-  - [x] Tool overview with logo, description
-  - [x] Rating and reviews display
-  - [x] Add review form
-  - [x] Bookmark/save functionality
-  - [x] Similar tools section
+- [x] Tool detail: overview with logo and description
+- [x] Tool detail: rating and reviews display
+- [x] Tool detail: add review form
+- [x] Tool detail: bookmark/save functionality
+- [x] Tool detail: similar tools section
 - [x] Blog Listing (`/blog`)
 - [x] Blog Detail Page (`/blog/[slug]`)
-  - [x] Rich content rendering
-  - [x] Author info
-  - [x] Related posts
+- [x] Blog detail: rich content rendering
+- [x] Blog detail: author info
+- [x] Blog detail: related posts
 - [x] Global Search Results Page (`/search`)
 
 ### Authentication
@@ -34,9 +34,9 @@ Last updated: 2026-03-03
 
 ### User Features
 - [x] User Dashboard (`/dashboard`)
-  - [x] Bookmarks tab
-  - [x] Reviews tab
-  - [x] Settings tab
+- [x] Dashboard: bookmarks tab
+- [x] Dashboard: reviews tab
+- [x] Dashboard: settings tab
 - [x] Supabase authentication integration
 
 ### Admin Features
@@ -63,4 +63,40 @@ Run these when setting up a fresh environment:
 
 ```bash
 npm run db:migrate
+npm run dev
+npm run build
 ```
+
+## Pre-Code Audit Blockers (2026-03-05)
+
+Complete these before starting new feature work.
+
+### Top 10 Priority Fixes (Execution Order)
+- [x] Protect tools/categories write APIs with strict server-side admin guard.
+- [ ] Replace `user_metadata.role` authorization trust with server-managed role source.
+- [ ] Upgrade `next` to a patched version and re-run `npm audit`.
+- [ ] Fix `/auth/callback` cookie persistence by writing cookies on `NextResponse`.
+- [ ] Add server-side input validation (Zod) for all write routes.
+- [ ] Enforce pagination/query clamps (`page >= 1`, `1 <= limit <= 100`) across list APIs.
+- [ ] Wrap multi-step Prisma writes in transactions to avoid partial updates.
+- [ ] Add CI workflow with `lint`, `typecheck`, `test`, and `build` gates.
+- [ ] Separate analytics view tracking from tool detail reads.
+- [ ] Implement Dashboard Settings submit flow with real API persistence.
+
+### Quick Wins (1 day)
+- [x] Add admin guards to unprotected tool/category mutation routes.
+- [ ] Add pagination clamps and NaN guards in tools/reviews/admin list APIs.
+- [ ] Repair OAuth callback cookie handling.
+- [ ] Connect Dashboard settings form to `/api/user/profile`.
+
+### Short-Term (1 week)
+- [ ] Centralize authZ (`requireAdmin`) and trusted role resolution.
+- [ ] Add baseline tests for auth, admin write routes, and critical user flows.
+- [ ] Add CI pipeline and required status checks.
+- [ ] Remove helper duplication (`slugify`, role checks, user sync).
+
+### Mid-Term (1 month)
+- [ ] Introduce service layer for API/business logic separation.
+- [ ] Implement reliable analytics event pipeline for views.
+- [ ] Optimize heavy frontend fetch patterns (search debounce, bookmark status endpoint).
+- [ ] Establish dependency governance (scheduled audit + upgrade policy).
