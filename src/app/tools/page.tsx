@@ -163,15 +163,15 @@ function ToolsPageContent() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">AI Tools Directory</h1>
+          <h1>AI Tools Directory</h1>
           <p className="mt-1 text-brand-muted">Discover the best AI tools for your needs</p>
         </div>
         <button
           onClick={() => setIsMobileFiltersOpen(true)}
-          className="inline-flex min-h-10 items-center gap-2 self-start rounded-lg border ui-border bg-brand-surface px-3 py-2 text-sm font-medium lg:hidden"
+          className="ui-btn ui-btn-ghost self-start !rounded-lg !px-3 lg:hidden"
         >
           <Filter className="h-4 w-4" />
           Filters
@@ -263,7 +263,8 @@ function ToolsPageContent() {
         {/* Main Content */}
         <div className="flex-1 space-y-6">
           {/* Search and Sort */}
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="ui-card p-3 sm:p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <form onSubmit={handleSearch} className="min-w-0 flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-muted" />
@@ -279,7 +280,7 @@ function ToolsPageContent() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="w-full min-w-0 rounded-xl border ui-border bg-brand-surface px-3 py-2.5 text-sm outline-none focus:border-brand-primary sm:w-52"
+              className="ui-input w-full min-w-0 sm:w-52"
             >
               {sortOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -287,6 +288,7 @@ function ToolsPageContent() {
                 </option>
               ))}
             </select>
+          </div>
           </div>
 
           {/* Results Count */}
@@ -332,7 +334,7 @@ function ToolsPageContent() {
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="min-h-10 min-w-20 rounded-lg border ui-border bg-brand-surface px-3 py-2 text-sm disabled:opacity-50 sm:px-4"
+                className="ui-btn ui-btn-ghost min-w-20 !rounded-lg !px-3 !py-2 disabled:opacity-50 sm:!px-4"
               >
                 <span className="sm:hidden">Prev</span>
                 <span className="hidden sm:inline">Previous</span>
@@ -343,7 +345,7 @@ function ToolsPageContent() {
               <button
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="min-h-10 min-w-20 rounded-lg border ui-border bg-brand-surface px-3 py-2 text-sm disabled:opacity-50 sm:px-4"
+                className="ui-btn ui-btn-ghost min-w-20 !rounded-lg !px-3 !py-2 disabled:opacity-50 sm:!px-4"
               >
                 <span className="sm:hidden">Next</span>
                 <span className="hidden sm:inline">Next</span>

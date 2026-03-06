@@ -13,8 +13,8 @@ const twitterUrl = `https://x.com/${twitterHandle}`;
 
 export function Footer() {
   return (
-    <footer className="mt-16 border-t ui-border bg-brand-surface/50 backdrop-blur-sm">
-      <div className="container-shell py-10">
+    <footer className="mt-16 border-t ui-border bg-brand-surface/55 backdrop-blur-sm">
+      <div className="container-shell py-12">
         <div className="grid gap-8 md:grid-cols-4">
           <div className="md:col-span-2">
             <p className="text-lg font-semibold tracking-tight">
@@ -48,13 +48,13 @@ export function Footer() {
           <div>
             <p className="text-sm font-semibold">Coming Soon</p>
             <div className="mt-3 space-y-2 text-sm text-brand-muted">
-              <p className="flex items-center justify-between rounded-md border ui-border px-2 py-1">
+              <p className="flex items-center justify-between rounded-md border ui-border bg-brand-surface/70 px-2 py-1">
                 Tool Collections <span className="text-[10px] uppercase tracking-wide text-brand-primary">Soon</span>
               </p>
-              <p className="flex items-center justify-between rounded-md border ui-border px-2 py-1">
+              <p className="flex items-center justify-between rounded-md border ui-border bg-brand-surface/70 px-2 py-1">
                 Compare Workspace <span className="text-[10px] uppercase tracking-wide text-brand-primary">Soon</span>
               </p>
-              <p className="flex items-center justify-between rounded-md border ui-border px-2 py-1">
+              <p className="flex items-center justify-between rounded-md border ui-border bg-brand-surface/70 px-2 py-1">
                 Weekly Digest <span className="text-[10px] uppercase tracking-wide text-brand-primary">Soon</span>
               </p>
             </div>

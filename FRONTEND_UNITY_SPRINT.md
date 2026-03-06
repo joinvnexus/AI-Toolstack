@@ -19,10 +19,10 @@ Last updated: 2026-03-06
   - `src/lib/constants/site.ts`
 
 ### Day 2 - Layout Unity
-- [ ] Use one container width rule across public pages
-- [ ] Unify section spacing and heading rhythm
-- [ ] Normalize navbar + footer spacing/behavior
-- [ ] Apply changes in:
+- [x] Use one container width rule across public pages
+- [x] Unify section spacing and heading rhythm
+- [x] Normalize navbar + footer spacing/behavior
+- [x] Apply changes in:
   - `src/components/layout/navbar.tsx`
   - `src/components/layout/footer.tsx`
   - `src/app/page.tsx`

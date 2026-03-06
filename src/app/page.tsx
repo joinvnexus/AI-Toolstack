@@ -185,7 +185,7 @@ export default async function HomePage() {
 
   return (
     <PageTransition>
-      <div className="space-y-14 md:space-y-16">
+      <div className="space-y-12 md:space-y-14">
         <section className="ui-card-soft relative overflow-hidden p-6 sm:p-8 md:p-10">
           <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/20 via-brand-accent/10 to-brand-secondary/10" />
           <div className="relative">
@@ -210,7 +210,7 @@ export default async function HomePage() {
                   placeholder="Search tools, features, and categories..."
                   className="ui-input w-full sm:max-w-xl"
                 />
-                <button className="rounded-xl bg-brand-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-brand-primary/90">
+                <button className="ui-btn ui-btn-primary !px-5">
                   Search
                 </button>
               </form>
@@ -218,9 +218,9 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section>
+        <section className="space-y-5">
           <FadeIn>
-            <h2 className="section-title mb-5">Popular Categories</h2>
+            <h2 className="section-title">Popular Categories</h2>
           </FadeIn>
           <StaggerContainer className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {categories.map((category) => (
@@ -238,9 +238,9 @@ export default async function HomePage() {
           </StaggerContainer>
         </section>
 
-        <section>
+        <section className="space-y-5">
           <FadeIn>
-            <div className="mb-5 flex items-center justify-between gap-4">
+            <div className="flex items-center justify-between gap-4">
               <h2 className="section-title">Featured Tools</h2>
               <Link href="/tools" className="text-sm text-brand-primary hover:underline">
                 View all
@@ -271,9 +271,9 @@ export default async function HomePage() {
           </StaggerContainer>
         </section>
 
-        <section>
+        <section className="space-y-5">
           <FadeIn>
-            <h2 className="section-title mb-5">Latest Blog Posts</h2>
+            <h2 className="section-title">Latest Blog Posts</h2>
           </FadeIn>
           <StaggerContainer className="grid gap-4 md:grid-cols-2">
             {blogPosts.map((post) => (

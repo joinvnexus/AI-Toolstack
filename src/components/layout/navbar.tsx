@@ -100,14 +100,18 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 border-b ui-border bg-brand-background/80 backdrop-blur-xl">
-      <nav className="container-shell flex h-16 items-center justify-between">
+      <nav className="container-shell flex min-h-[4.5rem] items-center justify-between py-2">
         <Link href="/" className="text-lg font-semibold tracking-tight">
           <span className="text-brand-primary">AI</span> Toolstack
         </Link>
 
         <div className="hidden items-center gap-6 md:flex">
           {navLinks.map((link) => (
-            <Link key={link.href} href={link.href} className="text-sm text-brand-muted hover:text-brand-text">
+            <Link
+              key={link.href}
+              href={link.href}
+              className="text-sm font-medium text-brand-muted transition hover:text-brand-text"
+            >
               {link.label}
             </Link>
           ))}
@@ -116,7 +120,7 @@ export function Navbar() {
         <div className="flex items-center gap-1 sm:gap-2">
           <button
             onClick={() => setSearchOpen(!searchOpen)}
-            className="ui-ring rounded-lg p-2 text-brand-muted hover:text-brand-text"
+            className="ui-btn ui-btn-ghost ui-ring !min-h-10 !min-w-10 !rounded-lg !px-0 !py-0 text-brand-muted hover:text-brand-text"
             aria-label="Search"
           >
             <Search className="h-5 w-5" />
@@ -130,7 +134,7 @@ export function Navbar() {
             <div className="relative">
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="ui-ring flex items-center gap-2 rounded-lg p-1.5 text-brand-muted hover:text-brand-text"
+                className="ui-btn ui-btn-ghost ui-ring !min-h-10 !rounded-lg !px-1.5 !py-1.5 text-brand-muted hover:text-brand-text"
                 aria-label="User menu"
               >
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-primary text-sm font-medium text-white">
@@ -174,13 +178,10 @@ export function Navbar() {
             </div>
           ) : (
             <div className="hidden items-center gap-2 sm:flex">
-              <Link href="/login" className="rounded-lg px-3 py-2 text-sm text-brand-muted hover:text-brand-text">
+              <Link href="/login" className="ui-btn ui-btn-ghost !rounded-lg !px-3 !py-2">
                 Log In
               </Link>
-              <Link
-                href="/signup"
-                className="rounded-lg bg-brand-primary px-3 py-2 text-sm font-medium text-white hover:bg-brand-primary/90"
-              >
+              <Link href="/signup" className="ui-btn ui-btn-primary !rounded-lg !px-3 !py-2">
                 Sign Up
               </Link>
             </div>
@@ -188,7 +189,7 @@ export function Navbar() {
 
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="ui-ring rounded-lg p-2 text-brand-muted hover:text-brand-text md:hidden"
+            className="ui-btn ui-btn-ghost ui-ring !min-h-10 !min-w-10 !rounded-lg !px-0 !py-0 text-brand-muted hover:text-brand-text md:hidden"
             aria-label="Menu"
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -246,14 +247,14 @@ export function Navbar() {
                   <Link
                     href="/login"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="block rounded-lg border ui-border px-4 py-2 text-center text-brand-muted hover:bg-brand-primary/10 hover:text-brand-text"
+                    className="ui-btn ui-btn-ghost block w-full !rounded-lg !px-4 !py-2 text-center"
                   >
                     Log In
                   </Link>
                   <Link
                     href="/signup"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="block rounded-lg bg-brand-primary px-4 py-2 text-center font-medium text-white hover:bg-brand-primary/90"
+                    className="ui-btn ui-btn-primary block w-full !rounded-lg !px-4 !py-2 text-center"
                   >
                     Sign Up
                   </Link>

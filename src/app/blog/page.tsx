@@ -104,13 +104,13 @@ function BlogPageContent() {
   }, [page, debouncedSearch, selectedCategory, sortBy, syncUrl]);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <div>
-        <h1 className="text-3xl font-bold">Blog</h1>
+        <h1>Blog</h1>
         <p className="mt-2 text-brand-muted">Latest insights, guides, and news about AI tools</p>
       </div>
 
-      <div className="ui-card p-4">
+      <div className="ui-card p-4 sm:p-5">
         <div className="grid gap-3 md:grid-cols-[1fr_auto_auto]">
           <div className="relative">
             <Search className="absolute left-3  top-1/2 h-4 w-4 -translate-y-1/2 text-brand-muted" />
@@ -121,7 +121,7 @@ function BlogPageContent() {
                 setSearch(e.target.value);
               }}
               placeholder="Search blog posts..."
-              className="ui-input ui-input-icon w-full py-2 pr-4 "
+              className="ui-input ui-input-icon w-full py-2 pr-4"
             />
           </div>
           <select
@@ -180,23 +180,23 @@ function BlogPageContent() {
 
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-2">
-              <button
-                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                disabled={page === 1}
-                className="rounded-lg border ui-border bg-brand-surface px-4 py-2 text-sm disabled:opacity-50"
-              >
-                Previous
-              </button>
+            <button
+              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              disabled={page === 1}
+              className="ui-btn ui-btn-ghost !rounded-lg !px-4 !py-2 disabled:opacity-50"
+            >
+              Previous
+            </button>
               <span className="text-sm text-brand-muted">
                 Page {page} of {totalPages}
               </span>
-              <button
-                onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-                disabled={page === totalPages}
-                className="rounded-lg border ui-border bg-brand-surface px-4 py-2 text-sm disabled:opacity-50"
-              >
-                Next
-              </button>
+            <button
+              onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+              disabled={page === totalPages}
+              className="ui-btn ui-btn-ghost !rounded-lg !px-4 !py-2 disabled:opacity-50"
+            >
+              Next
+            </button>
             </div>
           )}
         </>
