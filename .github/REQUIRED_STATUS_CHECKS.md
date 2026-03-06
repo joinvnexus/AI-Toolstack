@@ -16,3 +16,4 @@ Use these settings for `main` branch protection so CI gates are enforced:
 Notes:
 - These check names come from `.github/workflows/ci.yml`.
 - If you rename CI jobs, update both the branch protection rule and this file.
+- Dependency governance runs on a separate scheduled workflow (`.github/workflows/dependency-governance.yml`) and is not a required PR status check.

@@ -15,7 +15,7 @@ AI Toolstack is a full-stack AI tools directory and blog platform built with Nex
 - Public pages:
   - Homepage
   - Tools directory
-  - Tool details (reviews, bookmarks, similar tools)
+  - Tool details (reviews, bookmarks, similar tools, deduped view tracking)
   - Blog list and blog details
   - Global search page
 - Authentication:
@@ -29,6 +29,11 @@ AI Toolstack is a full-stack AI tools directory and blog platform built with Nex
 - Admin panel:
   - Tools, categories, blog posts, users, reviews
   - Admin stats and role management
+- Platform quality:
+  - Centralized role/auth guards
+  - Service-layer extraction for blog APIs
+  - Dependency governance workflow and policy
+  - CI gates (`lint`, `typecheck`, `test`, `build`)
 
 ## Quick Start
 
@@ -49,6 +54,13 @@ npm run build
 Build command already includes Prisma client generation:
 
 - `prisma generate && next build`
+
+## Maintenance Commands
+
+```bash
+npm run audit:prod
+npm run audit:full
+```
 
 ## Environment Variables
 

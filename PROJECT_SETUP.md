@@ -61,6 +61,19 @@ npm run build
 
 `build` already runs `prisma generate && next build`.
 
+## 6.1 Dependency Governance Checks
+
+Run these manually anytime:
+
+```bash
+npm run audit:prod
+npm run audit:full
+```
+
+Automated weekly audit workflow:
+
+- `.github/workflows/dependency-governance.yml`
+
 ## 7. Supabase OAuth Setup (Google/Facebook)
 
 In Supabase dashboard:
