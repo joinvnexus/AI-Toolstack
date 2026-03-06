@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Bookmark, Star, Settings, LogOut } from 'lucide-react';
 import { ErrorState, Skeleton } from '@/components/ui/skeleton';
+import { useUIStore } from '@/lib/store/ui-store';
 
 type UserProfile = {
   id: string;
@@ -50,8 +51,8 @@ type DashboardTab = 'bookmarks' | 'reviews' | 'settings';
 
 const VALID_TABS: DashboardTab[] = ['bookmarks', 'reviews', 'settings'];
 
-const getTabFromQuery = (tab: string | null): DashboardTab =>
-  VALID_TABS.includes(tab as DashboardTab) ? (tab as DashboardTab) : 'bookmarks';
+const getTabFromQuery = (tab: string | null, fallback: DashboardTab): DashboardTab =>
+  VALID_TABS.includes(tab as DashboardTab) ? (tab as DashboardTab) : fallback;
 
 function DashboardPageContent() {
   const router = useRouter();
@@ -70,6 +71,8 @@ function DashboardPageContent() {
   const [settingsSuccess, setSettingsSuccess] = useState('');
   const [dataError, setDataError] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
+  const lastDashboardTab = useUIStore((state) => state.lastDashboardTab);
+  const setLastDashboardTab = useUIStore((state) => state.setLastDashboardTab);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -120,8 +123,14 @@ function DashboardPageContent() {
   }, [supabase, router, reloadKey]);
 
   useEffect(() => {
-    setActiveTab(getTabFromQuery(searchParams.get('tab')));
-  }, [searchParams]);
+    const queryTab = searchParams.get('tab');
+    const nextTab = getTabFromQuery(queryTab, lastDashboardTab);
+    setActiveTab(nextTab);
+    setLastDashboardTab(nextTab);
+    if (!queryTab) {
+      router.replace(`/dashboard?tab=${nextTab}`);
+    }
+  }, [searchParams, lastDashboardTab, setLastDashboardTab, router]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -130,6 +139,7 @@ function DashboardPageContent() {
 
   const handleTabChange = (tabId: DashboardTab) => {
     setActiveTab(tabId);
+    setLastDashboardTab(tabId);
     router.push(`/dashboard?tab=${tabId}`);
   };
 
@@ -256,11 +266,11 @@ function DashboardPageContent() {
             <button
               key={tab.id}
               onClick={() => handleTabChange(tab.id)}
-                className={`flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition ${
+                className={`flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/50 active:scale-[0.99] ${
                   activeTab === tab.id
                     ? 'border-brand-primary text-brand-text'
                     : 'border-transparent text-brand-muted hover:text-brand-text'
-              }`}
+                }`}
             >
               <tab.icon className="h-4 w-4" />
               {tab.label}

@@ -1,10 +1,10 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useRef, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ToolCard } from '@/components/tools/tool-card';
 import { Search, Filter, X } from 'lucide-react';
-import { useDebouncedValue } from '@/lib/hooks/use-debounced-value';
+import { useDebouncedValueWithStatus } from '@/lib/hooks/use-debounced-value';
 import { EmptyState, ErrorState, ToolCardSkeleton } from '@/components/ui/skeleton';
 
 const pricingOptions = ['All', 'Free', 'Paid', 'Freemium'];
@@ -37,22 +37,26 @@ type Category = {
 };
 
 function ToolsPageContent() {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+  const initialPage = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
   
   const [tools, setTools] = useState<Tool[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [search, setSearch] = useState(searchParams.get('q') || '');
-  const debouncedSearch = useDebouncedValue(search, 350);
+  const { debouncedValue: debouncedSearch, isDebouncing } = useDebouncedValueWithStatus(search, 350);
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'All');
   const [selectedPricing, setSelectedPricing] = useState(searchParams.get('pricing') || 'All');
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'rating');
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(1);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
+  const hasMounted = useRef(false);
 
   const normalizedCategory = (() => {
     if (selectedCategory === 'All') return 'All';
@@ -91,6 +95,25 @@ function ToolsPageContent() {
       setSelectedCategory(matchedByName.slug);
     }
   }, [categories, selectedCategory]);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (debouncedSearch.trim()) params.set('q', debouncedSearch.trim());
+    if (normalizedCategory !== 'All') params.set('category', normalizedCategory);
+    if (selectedPricing !== 'All') params.set('pricing', selectedPricing);
+    if (sortBy !== 'rating') params.set('sort', sortBy);
+    if (page > 1) params.set('page', String(page));
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [debouncedSearch, normalizedCategory, selectedPricing, sortBy, page, router, pathname]);
+
+  useEffect(() => {
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      return;
+    }
+    setPage(1);
+  }, [debouncedSearch, normalizedCategory, selectedPricing, sortBy]);
 
   useEffect(() => {
     const fetchTools = async () => {
@@ -222,21 +245,21 @@ function ToolsPageContent() {
             <div className="space-y-3">
               <h4 className="text-sm font-medium text-brand-muted">Category</h4>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-1">
-                <button
-                  onClick={() => handleCategoryChange('All')}
-                  className={`min-h-10 w-full rounded-lg px-3 py-2 text-sm text-left transition ${
-                    normalizedCategory === 'All'
-                      ? 'bg-brand-primary text-white'
-                      : 'bg-brand-primary/10 hover:bg-brand-primary/15'
-                  }`}
-                >
+                  <button
+                    onClick={() => handleCategoryChange('All')}
+                    className={`min-h-11 w-full rounded-lg px-3 py-2 text-sm text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/50 active:scale-[0.99] ${
+                      normalizedCategory === 'All'
+                        ? 'bg-brand-primary text-white'
+                        : 'bg-brand-primary/10 hover:bg-brand-primary/15'
+                    }`}
+                  >
                   All
                 </button>
                 {categories.map((category) => (
                   <button
                     key={category.slug}
                     onClick={() => handleCategoryChange(category.slug)}
-                    className={`min-h-10 w-full rounded-lg px-3 py-2 text-sm text-left transition ${
+                    className={`min-h-11 w-full rounded-lg px-3 py-2 text-sm text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/50 active:scale-[0.99] ${
                       normalizedCategory === category.slug
                         ? 'bg-brand-primary text-white'
                         : 'bg-brand-primary/10 hover:bg-brand-primary/15'
@@ -256,7 +279,7 @@ function ToolsPageContent() {
                   <button
                     key={pricing}
                     onClick={() => handlePricingChange(pricing)}
-                    className={`min-h-10 w-full rounded-lg px-3 py-2 text-sm text-left transition ${
+                    className={`min-h-11 w-full rounded-lg px-3 py-2 text-sm text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/50 active:scale-[0.99] ${
                       selectedPricing === pricing
                         ? 'bg-brand-primary text-white'
                         : 'bg-brand-primary/10 hover:bg-brand-primary/15'
@@ -302,9 +325,10 @@ function ToolsPageContent() {
           </div>
 
           {/* Results Count */}
-          <p className="text-sm text-brand-muted">
-            Showing {tools.length} tools
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm text-brand-muted">Showing {tools.length} tools</p>
+            {isDebouncing && <p className="text-xs text-brand-muted">Updating results...</p>}
+          </div>
 
           {/* Tools Grid */}
           {loading ? (

@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { ToolCard } from '@/components/tools/tool-card';
 import { BlogCard } from '@/components/blog/blog-card';
 import { BlogCardSkeleton, EmptyState, ErrorState, ToolCardSkeleton } from '@/components/ui/skeleton';
+import { useUIStore } from '@/lib/store/ui-store';
 
 type ToolResult = {
   id: string;
@@ -43,6 +44,9 @@ function SearchPageContent() {
   const [postTotal, setPostTotal] = useState(0);
   const [errorMessage, setErrorMessage] = useState('');
   const [retryKey, setRetryKey] = useState(0);
+  const recentSearches = useUIStore((state) => state.recentSearches);
+  const addRecentSearch = useUIStore((state) => state.addRecentSearch);
+  const clearRecentSearches = useUIStore((state) => state.clearRecentSearches);
 
   useEffect(() => {
     if (!query) {
@@ -81,6 +85,7 @@ function SearchPageContent() {
           setPosts(Array.isArray(postsData.data) ? postsData.data : []);
           setToolTotal(typeof toolsData.total === 'number' ? toolsData.total : 0);
           setPostTotal(typeof postsData.total === 'number' ? postsData.total : 0);
+          addRecentSearch(query);
         }
       } catch (error) {
         if (!controller.signal.aborted) {
@@ -103,7 +108,7 @@ function SearchPageContent() {
     return () => {
       controller.abort();
     };
-  }, [query, retryKey]);
+  }, [query, retryKey, addRecentSearch]);
 
   const totalResults = toolTotal + postTotal;
 
@@ -115,10 +120,33 @@ function SearchPageContent() {
       </div>
 
       {!query ? (
-        <EmptyState
-          title="Start your search"
-          description="Enter a search query from the navbar to see results."
-        />
+        <div className="space-y-4">
+          <EmptyState
+            title="Start your search"
+            description="Enter a search query from the navbar to see results."
+          />
+          {recentSearches.length > 0 && (
+            <div className="ui-card p-5">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-sm font-semibold">Recent searches</h2>
+                <button onClick={clearRecentSearches} className="text-xs text-brand-muted hover:text-brand-text">
+                  Clear
+                </button>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {recentSearches.map((item) => (
+                  <Link
+                    key={item}
+                    href={`/search?q=${encodeURIComponent(item)}`}
+                    className="ui-chip transition hover:text-brand-text"
+                  >
+                    {item}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       ) : loading ? (
         <div className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

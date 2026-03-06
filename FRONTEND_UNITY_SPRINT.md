@@ -52,10 +52,10 @@ Last updated: 2026-03-06
   - `src/app/dashboard/page.tsx`
 
 ### Day 5 - Interaction Polish
-- [ ] Improve hover/focus/active states
-- [ ] Improve filters/search debounce UX
-- [ ] Keep tab/filter state in URL or store
-- [ ] Apply changes in:
+- [x] Improve hover/focus/active states
+- [x] Improve filters/search debounce UX
+- [x] Keep tab/filter state in URL or store
+- [x] Apply changes in:
   - `src/lib/hooks/use-debounced-value.ts`
   - `src/lib/store/ui-store.ts`
   - `src/app/tools/page.tsx`

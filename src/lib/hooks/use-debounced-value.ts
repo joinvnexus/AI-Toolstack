@@ -17,3 +17,11 @@ export function useDebouncedValue<T>(value: T, delayMs: number): T {
 
   return debouncedValue;
 }
+
+export function useDebouncedValueWithStatus<T>(value: T, delayMs: number) {
+  const debouncedValue = useDebouncedValue(value, delayMs);
+  return {
+    debouncedValue,
+    isDebouncing: debouncedValue !== value
+  };
+}
