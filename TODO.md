@@ -99,4 +99,4 @@ Complete these before starting new feature work.
 - [x] Introduce service layer for API/business logic separation.
 - [x] Implement reliable analytics event pipeline for views.
 - [x] Optimize heavy frontend fetch patterns (search debounce, bookmark status endpoint).
-- [ ] Establish dependency governance (scheduled audit + upgrade policy).
+- [x] Establish dependency governance (scheduled audit + upgrade policy).

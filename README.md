@@ -65,3 +65,4 @@ Use values from `.env.example`. Required keys:
 
 - Setup guide: [PROJECT_SETUP.md](./PROJECT_SETUP.md)
 - Project status and completed checklist: [TODO.md](./TODO.md)
+- Dependency governance policy: [DEPENDENCY_GOVERNANCE.md](./DEPENDENCY_GOVERNANCE.md)

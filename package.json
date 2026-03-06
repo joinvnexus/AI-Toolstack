@@ -9,7 +9,9 @@
     "test": "vitest run",
     "build": "prisma generate && next build",
     "start": "next start",
-    "db:migrate": "prisma migrate deploy"
+    "db:migrate": "prisma migrate deploy",
+    "audit:prod": "npm audit --omit=dev --audit-level=high",
+    "audit:full": "npm audit --audit-level=moderate"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
