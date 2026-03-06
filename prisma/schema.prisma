@@ -61,6 +61,20 @@ model Tool {
   reviews         Review[]
   bookmarks       Bookmark[]
   screenshots     Screenshot[]
+  viewEvents      ToolViewEvent[]
+}
+
+model ToolViewEvent {
+  id           String   @id @default(cuid())
+  viewedAt     DateTime @default(now())
+  bucketStart  DateTime
+  visitorHash  String
+
+  toolId       String
+  tool         Tool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  @@unique([toolId, visitorHash, bucketStart])
+  @@index([toolId, viewedAt])
 }
 
 model Category {

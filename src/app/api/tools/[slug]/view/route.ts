@@ -1,27 +1,45 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { randomUUID } from 'crypto';
+import { cookies } from 'next/headers';
+import { trackToolView } from '@/lib/services/tool-views-service';
 
 export async function POST(
   request: Request,
   { params }: { params: { slug: string } }
 ) {
   try {
-    const existingTool = await prisma.tool.findUnique({
-      where: { slug: params.slug },
-      select: { id: true },
+    const cookieStore = await cookies();
+    const existingVisitorId = cookieStore.get('toolstack_vid')?.value || '';
+    const visitorId = existingVisitorId || randomUUID();
+
+    const result = await trackToolView({
+      slug: params.slug,
+      visitorId,
+      userAgent: request.headers.get('user-agent') || '',
+      forwardedFor: request.headers.get('x-forwarded-for') || '',
     });
 
-    if (!existingTool) {
+    if (result.status === 'not_found') {
       return NextResponse.json({ error: 'Tool not found' }, { status: 404 });
     }
 
-    const updatedTool = await prisma.tool.update({
-      where: { id: existingTool.id },
-      data: { views: { increment: 1 } },
-      select: { views: true },
+    const response = NextResponse.json({
+      views: result.views,
+      counted: result.status === 'counted',
     });
 
-    return NextResponse.json({ views: updatedTool.views });
+    if (!existingVisitorId) {
+      response.cookies.set({
+        name: 'toolstack_vid',
+        value: visitorId,
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 365,
+      });
+    }
+
+    return response;
   } catch (error) {
     console.error('Error tracking tool view:', error);
     return NextResponse.json({ error: 'Failed to track view' }, { status: 500 });
