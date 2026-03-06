@@ -96,7 +96,7 @@ Complete these before starting new feature work.
 - [x] Remove helper duplication (`slugify`, role checks, user sync).
 
 ### Mid-Term (1 month)
-- [ ] Introduce service layer for API/business logic separation.
+- [x] Introduce service layer for API/business logic separation.
 - [ ] Implement reliable analytics event pipeline for views.
 - [ ] Optimize heavy frontend fetch patterns (search debounce, bookmark status endpoint).
 - [ ] Establish dependency governance (scheduled audit + upgrade policy).

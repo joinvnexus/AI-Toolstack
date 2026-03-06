@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
-import type { Prisma } from '@prisma/client';
 import { z } from 'zod';
-import prisma from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth/require-admin';
-import { slugify } from '@/lib/utils';
+import { createBlogPost, listBlogPosts } from '@/lib/services/blog-service';
 
 const parsePrismaErrorCode = (error: unknown): string | null => {
   if (typeof error !== 'object' || error === null || !('code' in error)) {
@@ -12,12 +10,6 @@ const parsePrismaErrorCode = (error: unknown): string | null => {
 
   const code = (error as { code?: unknown }).code;
   return typeof code === 'string' ? code : null;
-};
-
-const estimateReadTime = (content: string): number => {
-  const wordsPerMinute = 200;
-  const words = content.trim().split(/\s+/).filter(Boolean).length;
-  return Math.max(1, Math.ceil(words / wordsPerMinute));
 };
 
 const createBlogPostSchema = z.object({
@@ -47,61 +39,16 @@ export async function GET(request: Request) {
       if (!admin.ok) return admin.response;
     }
 
-    const where: Prisma.BlogPostWhereInput = {};
-
-    if (!includeDrafts) {
-      where.published = true;
-    }
-
-    if (category) {
-      where.categories = {
-        some: {
-          slug: category
-        }
-      };
-    }
-
-    if (search) {
-      where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { slug: { contains: search, mode: 'insensitive' } },
-        { excerpt: { contains: search, mode: 'insensitive' } },
-        { content: { contains: search, mode: 'insensitive' } }
-      ];
-    }
-
-    const orderBy: Prisma.BlogPostOrderByWithRelationInput[] =
-      sort === 'oldest'
-        ? [{ publishedAt: 'asc' }, { createdAt: 'asc' }]
-        : [{ publishedAt: 'desc' }, { createdAt: 'desc' }];
-
-    const [posts, total] = await Promise.all([
-      prisma.blogPost.findMany({
-        where,
-        include: {
-          author: {
-            select: {
-              id: true,
-              name: true,
-              avatarUrl: true
-            }
-          },
-          categories: true
-        },
-        orderBy,
-        skip: (page - 1) * limit,
-        take: limit
-      }),
-      prisma.blogPost.count({ where })
-    ]);
-
-    return NextResponse.json({
-      data: posts,
-      total,
+    const result = await listBlogPosts({
       page,
       limit,
-      totalPages: Math.ceil(total / limit)
+      category,
+      search,
+      sort,
+      includeDrafts,
     });
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error('Error fetching blog posts:', error);
     return NextResponse.json({ error: 'Failed to fetch blog posts' }, { status: 500 });
@@ -118,64 +65,12 @@ export async function POST(request: Request) {
       const firstIssue = parsedBody.error.issues[0];
       return NextResponse.json({ error: firstIssue?.message || 'Invalid request body' }, { status: 400 });
     }
-    const { title, content, excerpt, featuredImage, slug, categoryIds = [], published } = parsedBody.data;
-
-    const resolvedSlug = slugify(slug || title);
-    if (!resolvedSlug) {
-      return NextResponse.json({ error: 'A valid slug could not be generated' }, { status: 400 });
+    const post = await createBlogPost(parsedBody.data, admin.user);
+    if (!post.ok) {
+      return NextResponse.json({ error: post.error }, { status: 400 });
     }
-    const shouldPublish = published === true;
 
-    const post = await prisma.$transaction(async (tx) => {
-      await tx.user.upsert({
-        where: { id: admin.user.id },
-        create: {
-          id: admin.user.id,
-          email: admin.user.email || `${admin.user.id}@local.invalid`,
-          name: admin.user.name,
-          avatarUrl: admin.user.avatarUrl,
-          role: 'ADMIN'
-        },
-        update: {
-          email: admin.user.email || `${admin.user.id}@local.invalid`,
-          name: admin.user.name,
-          avatarUrl: admin.user.avatarUrl,
-          role: 'ADMIN'
-        }
-      });
-
-      return tx.blogPost.create({
-        data: {
-          title,
-          slug: resolvedSlug,
-          content,
-          excerpt: excerpt?.trim() || null,
-          featuredImage: featuredImage?.trim() || null,
-          readTime: estimateReadTime(content),
-          authorId: admin.user.id,
-          published: shouldPublish,
-          publishedAt: shouldPublish ? new Date() : null,
-          categories:
-            categoryIds.length > 0
-              ? {
-                  connect: categoryIds.map((id: string) => ({ id }))
-                }
-              : undefined
-        },
-        include: {
-          author: {
-            select: {
-              id: true,
-              name: true,
-              avatarUrl: true
-            }
-          },
-          categories: true
-        }
-      });
-    });
-
-    return NextResponse.json(post, { status: 201 });
+    return NextResponse.json(post.data, { status: 201 });
   } catch (error) {
     const errorCode = parsePrismaErrorCode(error);
     if (errorCode === 'P2002') {

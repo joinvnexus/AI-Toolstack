@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import prisma from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth/require-admin';
-import { slugify } from '@/lib/utils';
+import {
+  deleteBlogPostBySlug,
+  getBlogPostBySlug,
+  updateBlogPostBySlug,
+} from '@/lib/services/blog-service';
 
 const parsePrismaErrorCode = (error: unknown): string | null => {
   if (typeof error !== 'object' || error === null || !('code' in error)) {
@@ -11,12 +14,6 @@ const parsePrismaErrorCode = (error: unknown): string | null => {
 
   const code = (error as { code?: unknown }).code;
   return typeof code === 'string' ? code : null;
-};
-
-const estimateReadTime = (content: string): number => {
-  const wordsPerMinute = 200;
-  const words = content.trim().split(/\s+/).filter(Boolean).length;
-  return Math.max(1, Math.ceil(words / wordsPerMinute));
 };
 
 const updateBlogPostSchema = z.object({
@@ -36,19 +33,7 @@ export async function GET(request: Request, { params }: { params: { slug: string
       (searchParams.get('preview') || searchParams.get('includeDraft') || '').toLowerCase()
     );
 
-    const post = await prisma.blogPost.findUnique({
-      where: { slug: params.slug },
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            avatarUrl: true
-          }
-        },
-        categories: true
-      }
-    });
+    const post = await getBlogPostBySlug(params.slug);
 
     if (!post) {
       return NextResponse.json({ error: 'Blog post not found' }, { status: 404 });
@@ -75,9 +60,7 @@ export async function PUT(request: Request, { params }: { params: { slug: string
     const adminResult = await requireAdmin();
     if (!adminResult.ok) return adminResult.response;
 
-    const existingPost = await prisma.blogPost.findUnique({
-      where: { slug: params.slug }
-    });
+    const existingPost = await getBlogPostBySlug(params.slug);
 
     if (!existingPost) {
       return NextResponse.json({ error: 'Blog post not found' }, { status: 404 });
@@ -89,55 +72,19 @@ export async function PUT(request: Request, { params }: { params: { slug: string
       return NextResponse.json({ error: firstIssue?.message || 'Invalid request body' }, { status: 400 });
     }
 
-    const { title, content, excerpt, featuredImage, slug: slugInput, categoryIds, published } = parsedBody.data;
-    const publishedProvided = typeof published === 'boolean';
-
-    const nextSlug = slugInput !== undefined ? slugify(slugInput) : undefined;
-    if (slugInput !== undefined && !nextSlug) {
-      return NextResponse.json({ error: 'Slug is invalid' }, { status: 400 });
-    }
-
-    let nextPublishedAt = existingPost.publishedAt;
-    if (publishedProvided) {
-      if (published === true && !existingPost.published) {
-        nextPublishedAt = new Date();
-      }
-      if (published === false) {
-        nextPublishedAt = null;
-      }
-    }
-
-    const updatedPost = await prisma.blogPost.update({
-      where: { slug: params.slug },
-      data: {
-        title,
-        slug: nextSlug,
-        content,
-        excerpt: excerpt === undefined ? undefined : excerpt || null,
-        featuredImage: featuredImage === undefined ? undefined : featuredImage || null,
-        readTime: content ? estimateReadTime(content) : undefined,
-        published: publishedProvided ? published : undefined,
-        publishedAt: publishedProvided ? nextPublishedAt : undefined,
-        categories:
-          categoryIds !== undefined
-            ? {
-                set: categoryIds.map((id: string) => ({ id }))
-              }
-            : undefined
+    const updatedPost = await updateBlogPostBySlug(
+      params.slug,
+      {
+        published: existingPost.published,
+        publishedAt: existingPost.publishedAt,
       },
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            avatarUrl: true
-          }
-        },
-        categories: true
-      }
-    });
+      parsedBody.data
+    );
+    if (!updatedPost.ok) {
+      return NextResponse.json({ error: updatedPost.error }, { status: 400 });
+    }
 
-    return NextResponse.json(updatedPost);
+    return NextResponse.json(updatedPost.data);
   } catch (error) {
     const errorCode = parsePrismaErrorCode(error);
     if (errorCode === 'P2002') {
@@ -158,17 +105,13 @@ export async function DELETE(_request: Request, { params }: { params: { slug: st
     const adminResult = await requireAdmin();
     if (!adminResult.ok) return adminResult.response;
 
-    const post = await prisma.blogPost.findUnique({
-      where: { slug: params.slug }
-    });
+    const post = await getBlogPostBySlug(params.slug);
 
     if (!post) {
       return NextResponse.json({ error: 'Blog post not found' }, { status: 404 });
     }
 
-    await prisma.blogPost.delete({
-      where: { slug: params.slug }
-    });
+    await deleteBlogPostBySlug(params.slug);
 
     return NextResponse.json({ message: 'Blog post deleted successfully' });
   } catch (error) {
