@@ -154,12 +154,12 @@ export default function AdminPostsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Manage Blog Posts</h1>
+          <h1>Manage Blog Posts</h1>
           <p className="text-brand-muted">Create, edit, publish, or remove blog posts</p>
         </div>
         <Link
           href="/admin/posts/new"
-          className="flex items-center gap-2 rounded-lg bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary/90"
+          className="ui-btn ui-btn-primary gap-2 !rounded-lg !px-4 !py-2"
         >
           <Plus className="h-4 w-4" />
           Write New Post
@@ -177,7 +177,7 @@ export default function AdminPostsPage() {
         />
       </div>
 
-      <div className="overflow-hidden rounded-xl border ui-border bg-brand-surface">
+      <div className="ui-card overflow-hidden !rounded-xl !p-0">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -229,7 +229,7 @@ export default function AdminPostsPage() {
                       <div className="flex items-center justify-end gap-2">
                         <Link
                           href={`/blog/${post.slug}${post.published ? '' : '?preview=1'}`}
-                          className="rounded-lg p-2 text-brand-muted hover:bg-brand-primary/15 hover:text-brand-text"
+                          className="ui-btn ui-btn-ghost !min-h-9 !min-w-9 !rounded-lg !px-0 !py-0 text-brand-muted hover:text-brand-text"
                           title={post.published ? 'View' : 'Preview draft'}
                         >
                           <Eye className="h-4 w-4" />
@@ -237,7 +237,7 @@ export default function AdminPostsPage() {
                         <button
                           onClick={() => handleTogglePublish(post)}
                           disabled={togglingStatus === post.id}
-                          className="rounded-lg p-2 text-brand-muted hover:bg-brand-primary/15 hover:text-brand-text disabled:opacity-50"
+                          className="ui-btn ui-btn-ghost !min-h-9 !min-w-9 !rounded-lg !px-0 !py-0 text-brand-muted hover:text-brand-text disabled:opacity-50"
                           title={post.published ? 'Unpublish' : 'Publish'}
                         >
                           {togglingStatus === post.id ? (
@@ -250,7 +250,7 @@ export default function AdminPostsPage() {
                         </button>
                         <Link
                           href={`/admin/posts/${post.slug}/edit`}
-                          className="rounded-lg p-2 text-brand-muted hover:bg-brand-primary/15 hover:text-brand-text"
+                          className="ui-btn ui-btn-ghost !min-h-9 !min-w-9 !rounded-lg !px-0 !py-0 text-brand-muted hover:text-brand-text"
                           title="Edit"
                         >
                           <Edit className="h-4 w-4" />
@@ -258,7 +258,7 @@ export default function AdminPostsPage() {
                         <button
                           onClick={() => handleDelete(post)}
                           disabled={deleting === post.id}
-                          className="rounded-lg p-2 text-brand-muted hover:bg-brand-primary/15 hover:text-red-500 disabled:opacity-50"
+                          className="ui-btn ui-btn-ghost !min-h-9 !min-w-9 !rounded-lg !px-0 !py-0 text-brand-muted hover:text-red-500 disabled:opacity-50"
                           title="Delete"
                         >
                           {deleting === post.id ? (

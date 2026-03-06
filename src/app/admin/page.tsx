@@ -164,7 +164,7 @@ export default function AdminPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          <h1>Admin Dashboard</h1>
           <p className="mt-1 text-brand-muted">Manage your AI Toolstack platform</p>
         </div>
       </div>
@@ -202,25 +202,25 @@ export default function AdminPage() {
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Link
             href="/admin/tools/new"
-            className="rounded-xl bg-brand-primary px-4 py-3 text-center text-sm font-medium hover:bg-brand-primary/90"
+            className="ui-btn ui-btn-primary !rounded-xl !px-4 !py-3"
           >
             Add New Tool
           </Link>
           <Link
             href="/admin/posts/new"
-            className="rounded-xl border ui-border bg-brand-primary/10 px-4 py-3 text-center text-sm font-medium hover:bg-brand-primary/15"
+            className="ui-btn ui-btn-ghost !rounded-xl !px-4 !py-3"
           >
             Write Blog Post
           </Link>
           <Link
             href="/admin/categories"
-            className="rounded-xl border ui-border bg-brand-primary/10 px-4 py-3 text-center text-sm font-medium hover:bg-brand-primary/15"
+            className="ui-btn ui-btn-ghost !rounded-xl !px-4 !py-3"
           >
             Manage Categories
           </Link>
           <Link
             href="/admin/settings"
-            className="rounded-xl border ui-border bg-brand-primary/10 px-4 py-3 text-center text-sm font-medium hover:bg-brand-primary/15"
+            className="ui-btn ui-btn-ghost !rounded-xl !px-4 !py-3"
           >
             Site Settings
           </Link>

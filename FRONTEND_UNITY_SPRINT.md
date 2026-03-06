@@ -74,10 +74,10 @@ Last updated: 2026-03-06
   - `src/components/layout/navbar.tsx`
 
 ### Day 7 - Admin/Auth Consistency + Final QA
-- [ ] Unify admin pages styling
-- [ ] Unify auth pages styling
+- [x] Unify admin pages styling
+- [x] Unify auth pages styling
 - [ ] Final responsive and interaction QA
-- [ ] Apply changes in:
+- [x] Apply changes in:
   - `src/app/admin/page.tsx`
   - `src/app/admin/tools/page.tsx`
   - `src/app/admin/posts/page.tsx`

@@ -84,7 +84,7 @@ export default function SignupPage() {
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4">
-      <div className="w-full max-w-md ui-card p-8">
+      <div className="w-full max-w-md ui-card p-6 sm:p-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold">Create an account</h1>
           <p className="mt-2 text-sm text-brand-muted">
@@ -166,7 +166,7 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={loading || oauthLoading !== null}
-            className="w-full rounded-lg bg-brand-primary py-2.5 text-sm font-medium transition hover:bg-brand-primary/90 disabled:opacity-50"
+            className="ui-btn ui-btn-primary w-full !rounded-lg !py-2.5 disabled:opacity-50"
           >
             {loading ? (
               <Loader2 className="mx-auto h-4 w-4 animate-spin" />
@@ -192,7 +192,7 @@ export default function SignupPage() {
             type="button"
             disabled={loading || oauthLoading !== null}
             onClick={() => handleOAuthSignIn('google')}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border ui-border py-2.5 text-sm font-medium transition hover:bg-brand-primary/10 disabled:opacity-60"
+            className="ui-btn ui-btn-ghost w-full gap-2 !rounded-lg !py-2.5 disabled:opacity-60"
           >
             {oauthLoading === 'google' ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -223,7 +223,7 @@ export default function SignupPage() {
             type="button"
             disabled={loading || oauthLoading !== null}
             onClick={() => handleOAuthSignIn('facebook')}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border ui-border py-2.5 text-sm font-medium transition hover:bg-brand-primary/10 disabled:opacity-60"
+            className="ui-btn ui-btn-ghost w-full gap-2 !rounded-lg !py-2.5 disabled:opacity-60"
           >
             {oauthLoading === 'facebook' ? (
               <Loader2 className="h-4 w-4 animate-spin" />

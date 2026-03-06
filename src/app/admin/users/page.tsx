@@ -133,13 +133,13 @@ export default function AdminUsersPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Manage Users</h1>
+          <h1>Manage Users</h1>
           <p className="text-brand-muted">View users and update roles</p>
         </div>
         <button
           onClick={() => fetchUsers(true)}
           disabled={refreshing}
-          className="flex items-center gap-2 rounded-lg border ui-border bg-brand-primary/10 px-4 py-2 text-sm font-medium hover:bg-brand-primary/15 disabled:opacity-50"
+          className="ui-btn ui-btn-ghost gap-2 !rounded-lg !px-4 !py-2 disabled:opacity-50"
         >
           {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCcw className="h-4 w-4" />}
           Refresh
@@ -160,7 +160,7 @@ export default function AdminUsersPage() {
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value as 'ALL' | 'USER' | 'ADMIN')}
-          className="rounded-lg border ui-border bg-brand-surface px-4 py-2 text-sm outline-none focus:border-brand-primary"
+          className="ui-input"
         >
           <option value="ALL">All Roles</option>
           <option value="USER">USER</option>
@@ -193,7 +193,7 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border ui-border bg-brand-surface">
+      <div className="ui-card overflow-hidden !rounded-xl !p-0">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -239,14 +239,14 @@ export default function AdminUsersPage() {
                         <button
                           onClick={() => handleRoleUpdate(user, 'USER')}
                           disabled={updatingId === user.id || user.role === 'USER'}
-                          className="rounded-lg border ui-border bg-brand-primary/10 px-3 py-1.5 text-xs font-medium hover:bg-brand-primary/15 disabled:opacity-50"
+                          className="ui-btn ui-btn-ghost !min-h-9 !rounded-lg !px-3 !py-1.5 text-xs disabled:opacity-50"
                         >
                           Set USER
                         </button>
                         <button
                           onClick={() => handleRoleUpdate(user, 'ADMIN')}
                           disabled={updatingId === user.id || user.role === 'ADMIN'}
-                          className="rounded-lg bg-brand-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-primary/90 disabled:opacity-50"
+                          className="ui-btn ui-btn-primary !min-h-9 !rounded-lg !px-3 !py-1.5 text-xs disabled:opacity-50"
                         >
                           {updatingId === user.id ? (
                             <span className="inline-flex items-center gap-1">
