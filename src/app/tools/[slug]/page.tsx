@@ -331,6 +331,8 @@ export default function ToolDetailsPage() {
               <Image
                 src={tool.logoUrl}
                 alt={`${tool.name} logo`}
+                width={80}
+                height={80}
                 className="h-full w-full rounded-2xl object-cover"
               />
             ) : (
