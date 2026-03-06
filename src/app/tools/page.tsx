@@ -3,8 +3,9 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ToolCard } from '@/components/tools/tool-card';
-import { Search, Filter, Loader2, X } from 'lucide-react';
+import { Search, Filter, X } from 'lucide-react';
 import { useDebouncedValue } from '@/lib/hooks/use-debounced-value';
+import { EmptyState, ErrorState, ToolCardSkeleton } from '@/components/ui/skeleton';
 
 const pricingOptions = ['All', 'Free', 'Paid', 'Freemium'];
 const sortOptions = [
@@ -50,6 +51,8 @@ function ToolsPageContent() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
 
   const normalizedCategory = (() => {
     if (selectedCategory === 'All') return 'All';
@@ -92,6 +95,7 @@ function ToolsPageContent() {
   useEffect(() => {
     const fetchTools = async () => {
       setLoading(true);
+      setErrorMessage('');
       try {
         const params = new URLSearchParams();
         params.set('page', page.toString());
@@ -102,17 +106,23 @@ function ToolsPageContent() {
         params.set('sort', sortBy);
 
         const res = await fetch(`/api/tools?${params.toString()}`);
+        if (!res.ok) {
+          throw new Error('Failed to fetch tools');
+        }
         const data = await res.json();
         setTools(data.data || []);
         setTotalPages(data.totalPages || 1);
       } catch (error) {
         console.error('Error fetching tools:', error);
+        setTools([]);
+        setTotalPages(1);
+        setErrorMessage('Could not load tools for the selected filters.');
       } finally {
         setLoading(false);
       }
     };
     fetchTools();
-  }, [debouncedSearch, normalizedCategory, selectedPricing, sortBy, page]);
+  }, [debouncedSearch, normalizedCategory, selectedPricing, sortBy, page, reloadKey]);
 
   useEffect(() => {
     if (!isMobileFiltersOpen) return;
@@ -298,9 +308,17 @@ function ToolsPageContent() {
 
           {/* Tools Grid */}
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {[...Array(6)].map((_, index) => (
+                <ToolCardSkeleton key={index} />
+              ))}
             </div>
+          ) : errorMessage ? (
+            <ErrorState
+              title="Unable to load tools"
+              description={errorMessage}
+              onRetry={() => setReloadKey((current) => current + 1)}
+            />
           ) : tools.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {tools.map((tool) => (
@@ -323,9 +341,18 @@ function ToolsPageContent() {
               ))}
             </div>
           ) : (
-            <div className="ui-card p-6 text-center sm:p-12">
-              <p className="text-brand-muted">No tools found matching your criteria.</p>
-            </div>
+            <EmptyState
+              title="No tools found"
+              description="Try changing search, category, or pricing filters."
+              actionLabel="Clear filters"
+              onAction={() => {
+                setSearch('');
+                setSelectedCategory('All');
+                setSelectedPricing('All');
+                setSortBy('rating');
+                setPage(1);
+              }}
+            />
           )}
 
           {/* Pagination */}
@@ -360,8 +387,10 @@ function ToolsPageContent() {
 
 function ToolsPageFallback() {
   return (
-    <div className="flex items-center justify-center py-12">
-      <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {[...Array(6)].map((_, index) => (
+        <ToolCardSkeleton key={index} />
+      ))}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Bookmark, Star, Settings, LogOut } from 'lucide-react';
+import { ErrorState, Skeleton } from '@/components/ui/skeleton';
 
 type UserProfile = {
   id: string;
@@ -67,9 +68,13 @@ function DashboardPageContent() {
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [settingsError, setSettingsError] = useState('');
   const [settingsSuccess, setSettingsSuccess] = useState('');
+  const [dataError, setDataError] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
+      setDataError('');
       try {
         const {
           data: { user: authUser },
@@ -96,25 +101,23 @@ function DashboardPageContent() {
           fetch('/api/user/bookmarks'),
           fetch('/api/user/reviews'),
         ]);
-
-        if (bookmarksRes.ok) {
-          const bookmarksData = await bookmarksRes.json();
-          setBookmarks(bookmarksData);
+        if (!bookmarksRes.ok || !reviewsRes.ok) {
+          throw new Error('Failed to fetch dashboard resources');
         }
 
-        if (reviewsRes.ok) {
-          const reviewsData = await reviewsRes.json();
-          setReviews(reviewsData);
-        }
+        const [bookmarksData, reviewsData] = await Promise.all([bookmarksRes.json(), reviewsRes.json()]);
+        setBookmarks(Array.isArray(bookmarksData) ? bookmarksData : []);
+        setReviews(Array.isArray(reviewsData) ? reviewsData : []);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
+        setDataError('Could not load your dashboard data.');
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [supabase, router]);
+  }, [supabase, router, reloadKey]);
 
   useEffect(() => {
     setActiveTab(getTabFromQuery(searchParams.get('tab')));
@@ -185,13 +188,40 @@ function DashboardPageContent() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
+      <div className="space-y-6">
+        <div className="ui-card p-6">
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-16 w-16 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-4 w-56" />
+            </div>
+          </div>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {[...Array(3)].map((_, index) => (
+            <div key={index} className="ui-card p-5">
+              <Skeleton className="h-5 w-28" />
+              <Skeleton className="mt-3 h-4 w-full" />
+              <Skeleton className="mt-2 h-4 w-3/4" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
   if (!user) return null;
+
+  if (dataError) {
+    return (
+      <ErrorState
+        title="Unable to load dashboard"
+        description={dataError}
+        onRetry={() => setReloadKey((current) => current + 1)}
+      />
+    );
+  }
 
   const tabs: { id: DashboardTab; label: string; icon: typeof Bookmark }[] = [
     { id: 'bookmarks', label: `Bookmarks (${bookmarks.length})`, icon: Bookmark },

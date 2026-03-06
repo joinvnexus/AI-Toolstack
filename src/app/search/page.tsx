@@ -3,9 +3,9 @@
 import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Loader2, Search } from 'lucide-react';
 import { ToolCard } from '@/components/tools/tool-card';
 import { BlogCard } from '@/components/blog/blog-card';
+import { BlogCardSkeleton, EmptyState, ErrorState, ToolCardSkeleton } from '@/components/ui/skeleton';
 
 type ToolResult = {
   id: string;
@@ -41,6 +41,8 @@ function SearchPageContent() {
   const [posts, setPosts] = useState<BlogResult[]>([]);
   const [toolTotal, setToolTotal] = useState(0);
   const [postTotal, setPostTotal] = useState(0);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     if (!query) {
@@ -48,6 +50,7 @@ function SearchPageContent() {
       setPosts([]);
       setToolTotal(0);
       setPostTotal(0);
+      setErrorMessage('');
       setLoading(false);
       return;
     }
@@ -56,6 +59,7 @@ function SearchPageContent() {
 
     const fetchResults = async () => {
       setLoading(true);
+      setErrorMessage('');
 
       try {
         const [toolsRes, postsRes] = await Promise.all([
@@ -66,6 +70,9 @@ function SearchPageContent() {
             signal: controller.signal,
           }),
         ]);
+        if (!toolsRes.ok || !postsRes.ok) {
+          throw new Error('Failed to fetch search results');
+        }
 
         const [toolsData, postsData] = await Promise.all([toolsRes.json(), postsRes.json()]);
 
@@ -82,6 +89,7 @@ function SearchPageContent() {
           setPosts([]);
           setToolTotal(0);
           setPostTotal(0);
+          setErrorMessage('Could not load search results. Please retry.');
         }
       } finally {
         if (!controller.signal.aborted) {
@@ -95,7 +103,7 @@ function SearchPageContent() {
     return () => {
       controller.abort();
     };
-  }, [query]);
+  }, [query, retryKey]);
 
   const totalResults = toolTotal + postTotal;
 
@@ -107,16 +115,29 @@ function SearchPageContent() {
       </div>
 
       {!query ? (
-        <div className="ui-card p-12 text-center">
-          <Search className="mx-auto h-10 w-10 text-brand-muted" />
-          <p className="mt-4 text-brand-muted">
-            Enter a search query from the navbar to see results.
-          </p>
-        </div>
+        <EmptyState
+          title="Start your search"
+          description="Enter a search query from the navbar to see results."
+        />
       ) : loading ? (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
+        <div className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {[...Array(3)].map((_, index) => (
+              <ToolCardSkeleton key={`tool-skeleton-${index}`} />
+            ))}
+          </div>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[...Array(3)].map((_, index) => (
+              <BlogCardSkeleton key={`blog-skeleton-${index}`} />
+            ))}
+          </div>
         </div>
+      ) : errorMessage ? (
+        <ErrorState
+          title="Unable to load search results"
+          description={errorMessage}
+          onRetry={() => setRetryKey((current) => current + 1)}
+        />
       ) : (
         <>
           <div className="ui-card p-5">
@@ -198,8 +219,17 @@ function SearchPageContent() {
 
 function SearchPageFallback() {
   return (
-    <div className="flex items-center justify-center py-16">
-      <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
+    <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {[...Array(3)].map((_, index) => (
+          <ToolCardSkeleton key={`tool-fallback-${index}`} />
+        ))}
+      </div>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {[...Array(3)].map((_, index) => (
+          <BlogCardSkeleton key={`blog-fallback-${index}`} />
+        ))}
+      </div>
     </div>
   );
 }

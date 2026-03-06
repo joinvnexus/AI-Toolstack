@@ -40,11 +40,11 @@ Last updated: 2026-03-06
   - `src/app/dashboard/page.tsx`
 
 ### Day 4 - UX States
-- [ ] Add loading skeletons where needed
-- [ ] Add empty states (no data views)
-- [ ] Add error states with retry action
-- [ ] Add submit/loading/success feedback in forms
-- [ ] Apply changes in:
+- [x] Add loading skeletons where needed
+- [x] Add empty states (no data views)
+- [x] Add error states with retry action
+- [x] Add submit/loading/success feedback in forms
+- [x] Apply changes in:
   - `src/components/ui/skeleton.tsx`
   - `src/app/tools/page.tsx`
   - `src/app/blog/page.tsx`

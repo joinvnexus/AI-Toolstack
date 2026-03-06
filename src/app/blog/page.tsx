@@ -3,8 +3,9 @@
 import { Suspense, useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { BlogCard } from '@/components/blog/blog-card';
-import { Loader2, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useDebouncedValue } from '@/lib/hooks/use-debounced-value';
+import { BlogCardSkeleton, EmptyState, ErrorState } from '@/components/ui/skeleton';
 
 type BlogPost = {
   id: string;
@@ -48,6 +49,8 @@ function BlogPageContent() {
   const debouncedSearch = useDebouncedValue(search, 350);
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'latest');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
 
   const syncUrl = useCallback(
     (nextPage: number, nextSearch: string, nextCategory: string, nextSort: string) => {
@@ -80,6 +83,7 @@ function BlogPageContent() {
   useEffect(() => {
     const fetchPosts = async () => {
       setLoading(true);
+      setErrorMessage('');
       try {
         const params = new URLSearchParams();
         params.set('page', String(page));
@@ -89,11 +93,17 @@ function BlogPageContent() {
         if (selectedCategory !== 'all') params.set('category', selectedCategory);
 
         const res = await fetch(`/api/blog?${params.toString()}`);
+        if (!res.ok) {
+          throw new Error('Failed to fetch blog posts');
+        }
         const data = await res.json();
         setPosts(data.data || []);
         setTotalPages(data.totalPages || 1);
       } catch (error) {
         console.error('Error fetching blog posts:', error);
+        setPosts([]);
+        setTotalPages(1);
+        setErrorMessage('Could not load blog posts right now.');
       } finally {
         setLoading(false);
       }
@@ -101,7 +111,7 @@ function BlogPageContent() {
 
     fetchPosts();
     syncUrl(page, debouncedSearch, selectedCategory, sortBy);
-  }, [page, debouncedSearch, selectedCategory, sortBy, syncUrl]);
+  }, [page, debouncedSearch, selectedCategory, sortBy, syncUrl, reloadKey]);
 
   return (
     <div className="space-y-10">
@@ -157,9 +167,17 @@ function BlogPageContent() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((_, index) => (
+            <BlogCardSkeleton key={index} />
+          ))}
         </div>
+      ) : errorMessage ? (
+        <ErrorState
+          title="Unable to load blog posts"
+          description={errorMessage}
+          onRetry={() => setReloadKey((current) => current + 1)}
+        />
       ) : posts.length > 0 ? (
         <>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -201,9 +219,17 @@ function BlogPageContent() {
           )}
         </>
       ) : (
-        <div className="ui-card p-12 text-center">
-          <p className="text-brand-muted">No blog posts found.</p>
-        </div>
+        <EmptyState
+          title="No blog posts found"
+          description="Try another search term or switch category filters."
+          actionLabel="Reset filters"
+          onAction={() => {
+            setSearch('');
+            setSelectedCategory('all');
+            setSortBy('latest');
+            setPage(1);
+          }}
+        />
       )}
     </div>
   );
@@ -211,8 +237,10 @@ function BlogPageContent() {
 
 function BlogPageFallback() {
   return (
-    <div className="flex items-center justify-center py-12">
-      <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {[...Array(6)].map((_, index) => (
+        <BlogCardSkeleton key={index} />
+      ))}
     </div>
   );
 }

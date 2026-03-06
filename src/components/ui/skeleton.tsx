@@ -116,4 +116,51 @@ export function BlogPostSkeleton() {
   );
 }
 
+interface EmptyStateProps {
+  title: string;
+  description: string;
+  actionLabel?: string;
+  onAction?: () => void;
+}
+
+export function EmptyState({ title, description, actionLabel, onAction }: EmptyStateProps) {
+  return (
+    <div className="ui-card p-8 text-center sm:p-12">
+      <h3 className="text-lg font-semibold">{title}</h3>
+      <p className="mt-2 text-sm text-brand-muted">{description}</p>
+      {actionLabel && onAction && (
+        <button onClick={onAction} className="ui-btn ui-btn-ghost mt-5">
+          {actionLabel}
+        </button>
+      )}
+    </div>
+  );
+}
+
+interface ErrorStateProps {
+  title?: string;
+  description?: string;
+  retryLabel?: string;
+  onRetry?: () => void;
+}
+
+export function ErrorState({
+  title = 'Something went wrong',
+  description = 'We could not load this content. Please try again.',
+  retryLabel = 'Try again',
+  onRetry,
+}: ErrorStateProps) {
+  return (
+    <div className="ui-card border-red-400/30 p-8 text-center sm:p-12">
+      <h3 className="text-lg font-semibold text-red-500">{title}</h3>
+      <p className="mt-2 text-sm text-brand-muted">{description}</p>
+      {onRetry && (
+        <button onClick={onRetry} className="ui-btn ui-btn-ghost mt-5">
+          {retryLabel}
+        </button>
+      )}
+    </div>
+  );
+}
+
 
