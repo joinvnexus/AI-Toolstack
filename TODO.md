@@ -98,5 +98,5 @@ Complete these before starting new feature work.
 ### Mid-Term (1 month)
 - [x] Introduce service layer for API/business logic separation.
 - [ ] Implement reliable analytics event pipeline for views.
-- [ ] Optimize heavy frontend fetch patterns (search debounce, bookmark status endpoint).
+- [x] Optimize heavy frontend fetch patterns (search debounce, bookmark status endpoint).
 - [ ] Establish dependency governance (scheduled audit + upgrade policy).

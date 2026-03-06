@@ -6,6 +6,7 @@ import Link from 'next/link';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
 import { ExternalLink, Star, MapPin, DollarSign, Loader2, Bookmark, Share2, Send } from 'lucide-react';
+import Image from 'next/image';
 
 type Tool = {
   id: string;
@@ -163,11 +164,10 @@ export default function ToolDetailsPage() {
   useEffect(() => {
     const checkBookmarkStatus = async () => {
       if (user && tool) {
-        const res = await fetch('/api/user/bookmarks');
+        const res = await fetch(`/api/user/bookmarks/status?toolId=${encodeURIComponent(tool.id)}`);
         if (res.ok) {
-          const bookmarks = await res.json();
-          const bookmarked = bookmarks.some((b: any) => b.tool.id === tool.id);
-          setIsBookmarked(bookmarked);
+          const data = await res.json();
+          setIsBookmarked(data.isBookmarked === true);
         }
       } else {
         setIsBookmarked(false);
@@ -328,7 +328,7 @@ export default function ToolDetailsPage() {
         <div className="flex flex-col gap-6 md:flex-row md:items-start">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl border ui-border bg-brand-surface sm:h-20 sm:w-20">
             {tool.logoUrl ? (
-              <img
+              <Image
                 src={tool.logoUrl}
                 alt={`${tool.name} logo`}
                 className="h-full w-full rounded-2xl object-cover"

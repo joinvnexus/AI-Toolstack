@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ToolCard } from '@/components/tools/tool-card';
 import { Search, Filter, Loader2, X } from 'lucide-react';
+import { useDebouncedValue } from '@/lib/hooks/use-debounced-value';
 
 const pricingOptions = ['All', 'Free', 'Paid', 'Freemium'];
 const sortOptions = [
@@ -42,6 +43,7 @@ function ToolsPageContent() {
   const [loading, setLoading] = useState(true);
   
   const [search, setSearch] = useState(searchParams.get('q') || '');
+  const debouncedSearch = useDebouncedValue(search, 350);
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'All');
   const [selectedPricing, setSelectedPricing] = useState(searchParams.get('pricing') || 'All');
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'rating');
@@ -68,16 +70,6 @@ function ToolsPageContent() {
         const res = await fetch('/api/categories');
         const data = await res.json();
         setCategories(data);
-
-        if (selectedCategory !== 'All') {
-          const matchedByName = data.find(
-            (category: Category) => category.name.toLowerCase() === selectedCategory.toLowerCase()
-          );
-
-          if (matchedByName && matchedByName.slug !== selectedCategory) {
-            setSelectedCategory(matchedByName.slug);
-          }
-        }
       } catch (error) {
         console.error('Error fetching categories:', error);
       }
@@ -86,13 +78,25 @@ function ToolsPageContent() {
   }, []);
 
   useEffect(() => {
+    if (selectedCategory === 'All' || categories.length === 0) return;
+
+    const matchedByName = categories.find(
+      (category) => category.name.toLowerCase() === selectedCategory.toLowerCase()
+    );
+
+    if (matchedByName && matchedByName.slug !== selectedCategory) {
+      setSelectedCategory(matchedByName.slug);
+    }
+  }, [categories, selectedCategory]);
+
+  useEffect(() => {
     const fetchTools = async () => {
       setLoading(true);
       try {
         const params = new URLSearchParams();
         params.set('page', page.toString());
         params.set('limit', '12');
-        if (search) params.set('search', search);
+        if (debouncedSearch) params.set('search', debouncedSearch);
         if (normalizedCategory !== 'All') params.set('category', normalizedCategory);
         if (selectedPricing !== 'All') params.set('pricing', selectedPricing);
         params.set('sort', sortBy);
@@ -108,7 +112,7 @@ function ToolsPageContent() {
       }
     };
     fetchTools();
-  }, [search, normalizedCategory, selectedPricing, sortBy, page]);
+  }, [debouncedSearch, normalizedCategory, selectedPricing, sortBy, page]);
 
   useEffect(() => {
     if (!isMobileFiltersOpen) return;

@@ -1,9 +1,10 @@
 'use client';
 
-import { Suspense, useState, useEffect } from 'react';
+import { Suspense, useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { BlogCard } from '@/components/blog/blog-card';
 import { Loader2, Search } from 'lucide-react';
+import { useDebouncedValue } from '@/lib/hooks/use-debounced-value';
 
 type BlogPost = {
   id: string;
@@ -44,17 +45,21 @@ function BlogPageContent() {
   const [page, setPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState(searchParams.get('search') || '');
+  const debouncedSearch = useDebouncedValue(search, 350);
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'latest');
 
-  const syncUrl = (nextPage: number, nextSearch: string, nextCategory: string, nextSort: string) => {
-    const params = new URLSearchParams();
-    if (nextPage > 1) params.set('page', String(nextPage));
-    if (nextSearch.trim()) params.set('search', nextSearch.trim());
-    if (nextCategory !== 'all') params.set('category', nextCategory);
-    if (nextSort !== 'latest') params.set('sort', nextSort);
-    router.replace(params.toString() ? `/blog?${params.toString()}` : '/blog', { scroll: false });
-  };
+  const syncUrl = useCallback(
+    (nextPage: number, nextSearch: string, nextCategory: string, nextSort: string) => {
+      const params = new URLSearchParams();
+      if (nextPage > 1) params.set('page', String(nextPage));
+      if (nextSearch.trim()) params.set('search', nextSearch.trim());
+      if (nextCategory !== 'all') params.set('category', nextCategory);
+      if (nextSort !== 'latest') params.set('sort', nextSort);
+      router.replace(params.toString() ? `/blog?${params.toString()}` : '/blog', { scroll: false });
+    },
+    [router]
+  );
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -80,7 +85,7 @@ function BlogPageContent() {
         params.set('page', String(page));
         params.set('limit', '9');
         params.set('sort', sortBy);
-        if (search.trim()) params.set('search', search.trim());
+        if (debouncedSearch.trim()) params.set('search', debouncedSearch.trim());
         if (selectedCategory !== 'all') params.set('category', selectedCategory);
 
         const res = await fetch(`/api/blog?${params.toString()}`);
@@ -95,8 +100,8 @@ function BlogPageContent() {
     };
 
     fetchPosts();
-    syncUrl(page, search, selectedCategory, sortBy);
-  }, [page, search, selectedCategory, sortBy]);
+    syncUrl(page, debouncedSearch, selectedCategory, sortBy);
+  }, [page, debouncedSearch, selectedCategory, sortBy, syncUrl]);
 
   return (
     <div className="space-y-8">
