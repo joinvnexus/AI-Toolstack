@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Calendar, Clock, Loader2, ArrowLeft, Link2, Share2, Pencil, Trash2, X } from 'lucide-react';
+import { Calendar, Clock, Loader2, ArrowLeft, Link2, Share2, Pencil, Trash2, X, List, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
@@ -215,6 +215,10 @@ export default function BlogPostPage() {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [shareNotice, setShareNotice] = useState('');
+  const [activeHeadingId, setActiveHeadingId] = useState('');
+  const [tocOpen, setTocOpen] = useState(false);
+  const [readingProgress, setReadingProgress] = useState(0);
+  const articleContentRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -355,6 +359,69 @@ export default function BlogPostPage() {
     const timer = setTimeout(() => setShareNotice(''), 1800);
     return () => clearTimeout(timer);
   }, [shareNotice]);
+
+  useEffect(() => {
+    if (parsed.toc.length === 0) {
+      setActiveHeadingId('');
+      return;
+    }
+
+    const headingElements = parsed.toc
+      .map((item) => document.getElementById(item.id))
+      .filter((element): element is HTMLElement => Boolean(element));
+
+    if (headingElements.length === 0) return;
+
+    const updateActiveHeading = () => {
+      let currentId = headingElements[0].id;
+      for (const element of headingElements) {
+        if (element.getBoundingClientRect().top <= 140) {
+          currentId = element.id;
+        } else {
+          break;
+        }
+      }
+      setActiveHeadingId(currentId);
+    };
+
+    updateActiveHeading();
+    window.addEventListener('scroll', updateActiveHeading, { passive: true });
+    return () => window.removeEventListener('scroll', updateActiveHeading);
+  }, [parsed.toc]);
+
+  useEffect(() => {
+    setTocOpen(false);
+  }, [slug]);
+
+  useEffect(() => {
+    const updateReadingProgress = () => {
+      const element = articleContentRef.current;
+      if (!element) {
+        setReadingProgress(0);
+        return;
+      }
+
+      const start = element.offsetTop;
+      const end = start + element.offsetHeight - window.innerHeight;
+
+      if (end <= start) {
+        setReadingProgress(100);
+        return;
+      }
+
+      const ratio = (window.scrollY - start) / (end - start);
+      const progress = Math.min(100, Math.max(0, Math.round(ratio * 100)));
+      setReadingProgress(progress);
+    };
+
+    updateReadingProgress();
+    window.addEventListener('scroll', updateReadingProgress, { passive: true });
+    window.addEventListener('resize', updateReadingProgress);
+    return () => {
+      window.removeEventListener('scroll', updateReadingProgress);
+      window.removeEventListener('resize', updateReadingProgress);
+    };
+  }, [post?.id, parsed.elements.length]);
 
   const handleCommentSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -498,6 +565,18 @@ export default function BlogPostPage() {
     );
   }
 
+  const hasToc = parsed.toc.length > 0;
+  const progressLabel = `${readingProgress}%`;
+
+  const handleTocItemClick = (event: React.MouseEvent<HTMLAnchorElement>, id: string, closeMobile = false) => {
+    event.preventDefault();
+    const target = document.getElementById(id);
+    if (!target) return;
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.history.replaceState(null, '', `#${id}`);
+    if (closeMobile) setTocOpen(false);
+  };
+
   return (
     <div className="mx-auto max-w-5xl">
       <Link href="/blog" className="mb-6 inline-flex items-center gap-2 text-sm text-brand-muted hover:text-brand-text">
@@ -559,36 +638,118 @@ export default function BlogPostPage() {
           </div>
         </header>
 
-        {parsed.toc.length > 0 && (
-          <aside className="ui-card mb-8 p-4 sm:p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-muted">Table of Contents</h2>
-            <div className="mt-3 space-y-1">
-              {parsed.toc.map((item) => (
-                <a
-                  key={item.id}
-                  href={`#${item.id}`}
-                  className={`block text-sm text-brand-muted hover:text-brand-text ${item.level === 3 ? 'pl-4' : ''}`}
-                >
-                  {item.text}
-                </a>
-              ))}
+        <div ref={articleContentRef}>
+          {post.featuredImage && (
+            <div className="mb-8 overflow-hidden rounded-2xl">
+              <Image
+                src={post.featuredImage}
+                alt={post.title}
+                width={1200}
+                height={630}
+                className="h-auto w-full object-cover"
+              />
             </div>
-          </aside>
-        )}
+          )}
 
-        {post.featuredImage && (
-          <div className="mb-8 overflow-hidden rounded-2xl">
-            <Image
-              src={post.featuredImage}
-              alt={post.title}
-              width={1200}
-              height={630}
-              className="h-auto w-full object-cover"
-            />
+          {hasToc && (
+            <div className="mb-6 lg:hidden">
+              <div className="rounded-2xl border ui-border bg-gradient-to-br from-brand-primary/10 via-brand-background/80 to-brand-background p-[1px]">
+                <div className="rounded-[15px] bg-brand-background/95 p-3">
+                  <div className="mb-2 flex items-center justify-between px-1 text-xs text-brand-muted">
+                    <span>Reading progress</span>
+                    <span className="font-medium text-brand-primary">{progressLabel}</span>
+                  </div>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-brand-primary/10">
+                    <div className="h-full rounded-full bg-brand-primary transition-all duration-300" style={{ width: progressLabel }} />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setTocOpen((state) => !state)}
+                    className="mt-3 flex w-full items-center justify-between rounded-xl px-2 py-1 text-left"
+                    aria-expanded={tocOpen}
+                    aria-controls="mobile-toc"
+                  >
+                    <span className="inline-flex items-center gap-2 text-sm font-semibold text-brand-text">
+                      <List className="h-4 w-4 text-brand-primary" />
+                      Table of Contents
+                    </span>
+                    <ChevronDown className={`h-4 w-4 text-brand-muted transition-transform ${tocOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {tocOpen && (
+                    <nav id="mobile-toc" className="mt-3 space-y-1 border-t ui-border pt-3">
+                      {parsed.toc.map((item, index) => (
+                        <a
+                          key={item.id}
+                          href={`#${item.id}`}
+                          onClick={(event) => handleTocItemClick(event, item.id, true)}
+                          className={`flex items-center gap-2 rounded-lg px-2 py-2 text-sm transition ${
+                            activeHeadingId === item.id
+                              ? 'bg-brand-primary/15 text-brand-text'
+                              : 'text-brand-muted hover:bg-brand-primary/10 hover:text-brand-text'
+                          } ${item.level === 3 ? 'pl-5' : ''}`}
+                        >
+                          <span className="w-5 shrink-0 text-xs text-brand-primary/80">{index + 1}</span>
+                          <span className="line-clamp-1">{item.text}</span>
+                        </a>
+                      ))}
+                    </nav>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className={hasToc ? 'grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_280px]' : ''}>
+            <div className="space-y-4 break-words text-[15px] sm:text-base">{parsed.elements}</div>
+
+            {hasToc && (
+              <aside className="hidden lg:block">
+                <div className="sticky top-24 rounded-2xl border ui-border bg-gradient-to-br from-brand-primary/10 via-brand-background/80 to-brand-background p-[1px]">
+                  <div className="rounded-[15px] bg-brand-background/95 p-4">
+                    <div className="mb-3 flex items-center justify-between">
+                      <h2 className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-brand-muted">
+                        <List className="h-4 w-4 text-brand-primary" />
+                        Contents
+                      </h2>
+                      <span className="rounded-full bg-brand-primary/15 px-2 py-0.5 text-xs text-brand-primary">
+                        {parsed.toc.length}
+                      </span>
+                    </div>
+                    <div className="mb-4">
+                      <div className="mb-1 flex items-center justify-between text-xs text-brand-muted">
+                        <span>Progress</span>
+                        <span className="font-medium text-brand-primary">{progressLabel}</span>
+                      </div>
+                      <div className="h-1.5 overflow-hidden rounded-full bg-brand-primary/10">
+                        <div
+                          className="h-full rounded-full bg-brand-primary transition-all duration-300"
+                          style={{ width: progressLabel }}
+                        />
+                      </div>
+                    </div>
+                    <nav className="max-h-[60vh] space-y-1 overflow-auto pr-1">
+                      {parsed.toc.map((item, index) => (
+                        <a
+                          key={item.id}
+                          href={`#${item.id}`}
+                          onClick={(event) => handleTocItemClick(event, item.id)}
+                          className={`flex items-center gap-2 rounded-lg px-2 py-2 text-sm transition ${
+                            activeHeadingId === item.id
+                              ? 'bg-brand-primary/15 text-brand-text'
+                              : 'text-brand-muted hover:bg-brand-primary/10 hover:text-brand-text'
+                          } ${item.level === 3 ? 'pl-5' : ''}`}
+                        >
+                          <span className="w-5 shrink-0 text-xs text-brand-primary/80">{index + 1}</span>
+                          <span className="line-clamp-2">{item.text}</span>
+                        </a>
+                      ))}
+                    </nav>
+                  </div>
+                </div>
+              </aside>
+            )}
           </div>
-        )}
-
-        <div className="space-y-4 break-words text-[15px] sm:text-base">{parsed.elements}</div>
+        </div>
 
         <div className="mt-12 border-t ui-border pt-8">
           <p className="font-medium">Share this article</p>
