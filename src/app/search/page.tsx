@@ -100,9 +100,9 @@ function SearchPageContent() {
   const totalResults = toolTotal + postTotal;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <div>
-        <h1 className="text-3xl font-bold">Search</h1>
+        <h1>Search</h1>
         <p className="mt-2 text-brand-muted">Find tools and blog posts in one place.</p>
       </div>
 
@@ -127,7 +127,7 @@ function SearchPageContent() {
           </div>
 
           <section className="space-y-4">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-xl font-semibold">Tools ({toolTotal})</h2>
               <Link href={`/tools?q=${encodeURIComponent(query)}`} className="text-sm text-brand-primary hover:underline">
                 View all tools
@@ -162,7 +162,7 @@ function SearchPageContent() {
           </section>
 
           <section className="space-y-4">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-xl font-semibold">Blog Posts ({postTotal})</h2>
               <Link href="/blog" className="text-sm text-brand-primary hover:underline">
                 Browse blog

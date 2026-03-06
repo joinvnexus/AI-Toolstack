@@ -200,7 +200,7 @@ function DashboardPageContent() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <div className="ui-card p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-primary">
@@ -212,7 +212,7 @@ function DashboardPageContent() {
           </div>
           <button
             onClick={handleSignOut}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border ui-border px-4 py-2 text-sm text-brand-muted hover:bg-brand-primary/10 hover:text-brand-text sm:w-auto"
+            className="ui-btn ui-btn-ghost w-full gap-2 sm:w-auto"
           >
             <LogOut className="h-4 w-4" />
             Sign out
@@ -226,10 +226,10 @@ function DashboardPageContent() {
             <button
               key={tab.id}
               onClick={() => handleTabChange(tab.id)}
-              className={`flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-2 py-3 text-sm font-medium transition ${
-                activeTab === tab.id
-                  ? 'border-brand-primary text-brand-text'
-                  : 'border-transparent text-brand-muted hover:text-brand-text'
+                className={`flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition ${
+                  activeTab === tab.id
+                    ? 'border-brand-primary text-brand-text'
+                    : 'border-transparent text-brand-muted hover:text-brand-text'
               }`}
             >
               <tab.icon className="h-4 w-4" />
@@ -364,7 +364,7 @@ function DashboardPageContent() {
             <button
               type="submit"
               disabled={settingsSaving}
-              className="inline-flex items-center gap-2 rounded-lg bg-brand-primary px-4 py-2 text-sm font-medium hover:bg-brand-primary/90 disabled:cursor-not-allowed disabled:opacity-70"
+              className="ui-btn ui-btn-primary gap-2 disabled:cursor-not-allowed disabled:opacity-70"
             >
               {settingsSaving && <Loader2 className="h-4 w-4 animate-spin" />}
               Save Changes

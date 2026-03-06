@@ -21,7 +21,7 @@ export function ToolCard({
     <motion.article
       whileHover={{ y: -4 }}
       transition={{ duration: 0.2 }}
-      className="ui-card group relative p-4 transition-colors sm:p-5 sm:hover:border-brand-primary/70"
+      className="ui-card group relative h-full p-4 transition-colors sm:p-5 sm:hover:border-brand-primary/70"
     >
       <div className="absolute inset-0 rounded-2xl bg-brand-primary/5 opacity-0 transition-opacity sm:group-hover:opacity-100" />
 
@@ -35,14 +35,14 @@ export function ToolCard({
           </div>
 
           {showBookmark && onBookmarkToggle && (
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                onBookmarkToggle();
-              }}
-              className="ui-ring rounded-lg p-1.5 text-brand-muted transition-colors hover:text-brand-primary"
-              aria-label={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
-            >
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  onBookmarkToggle();
+                }}
+                className="ui-btn ui-btn-ghost ui-ring !min-h-11 !min-w-11 !rounded-lg !px-0 !py-0 text-brand-muted transition-colors hover:text-brand-primary"
+                aria-label={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
+              >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -83,7 +83,7 @@ export function ToolCard({
 
         <Link
           href={`/tools/${tool.slug}`}
-          className="mt-3 inline-flex items-center text-sm font-medium text-brand-primary transition-all sm:mt-4 sm:-translate-y-2 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100"
+          className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-brand-primary transition-all sm:mt-4 sm:-translate-y-2 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100"
         >
           View details &rarr;
         </Link>

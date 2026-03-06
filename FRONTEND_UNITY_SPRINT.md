@@ -31,9 +31,9 @@ Last updated: 2026-03-06
 
 ### Day 3 - Responsive Pass
 - [ ] QA at 320, 375, 768, 1024, 1280 widths
-- [ ] Fix card/grid breakpoints and overflow
-- [ ] Ensure touch targets are at least 44px
-- [ ] Apply changes in:
+- [x] Fix card/grid breakpoints and overflow
+- [x] Ensure touch targets are at least 44px
+- [x] Apply changes in:
   - `src/components/tools/tool-card.tsx`
   - `src/components/blog/blog-card.tsx`
   - `src/app/search/page.tsx`
