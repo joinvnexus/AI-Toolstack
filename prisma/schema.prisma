@@ -26,9 +26,10 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  reviews   Review[]
-  bookmarks Bookmark[]
-  posts     BlogPost[]
+  reviews      Review[]
+  bookmarks    Bookmark[]
+  posts        BlogPost[]
+  blogComments BlogComment[]
 }
 
 model Tool {
@@ -121,6 +122,21 @@ model BlogPost {
   authorId      String
   author        User       @relation(fields: [authorId], references: [id])
   categories    Category[]
+  comments      BlogComment[]
+}
+
+model BlogComment {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  blogPostId String
+  blogPost   BlogPost @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([blogPostId, createdAt])
 }
 
 model Bookmark {

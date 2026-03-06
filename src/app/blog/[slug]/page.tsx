@@ -5,6 +5,8 @@ import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Calendar, Clock, Loader2, ArrowLeft, Link2, Share2 } from 'lucide-react';
 import Image from 'next/image';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/client';
 
 type BlogPost = {
   id: string;
@@ -42,6 +44,17 @@ type TocItem = {
   id: string;
   text: string;
   level: 2 | 3;
+};
+
+type BlogComment = {
+  id: string;
+  content: string;
+  createdAt: string;
+  user: {
+    id: string;
+    name: string | null;
+    avatarUrl: string | null;
+  };
 };
 
 const toSlug = (value: string): string =>
@@ -183,35 +196,68 @@ const parseContent = (content: string): { elements: ReactNode[]; toc: TocItem[] 
 export default function BlogPostPage() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const supabase = createClient();
   const slugParam = params.slug;
   const slug = Array.isArray(slugParam) ? slugParam[0] : slugParam;
   const isPreview = ['1', 'true', 'yes'].includes((searchParams.get('preview') || '').toLowerCase());
 
   const [post, setPost] = useState<BlogPost | null>(null);
   const [relatedPosts, setRelatedPosts] = useState<RelatedPost[]>([]);
+  const [comments, setComments] = useState<BlogComment[]>([]);
+  const [commentsLoading, setCommentsLoading] = useState(true);
+  const [commentSubmitting, setCommentSubmitting] = useState(false);
+  const [commentContent, setCommentContent] = useState('');
+  const [commentError, setCommentError] = useState('');
+  const [commentSuccess, setCommentSuccess] = useState('');
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [shareNotice, setShareNotice] = useState('');
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+      setUser(authUser ?? null);
+    };
+    loadUser();
+  }, [supabase]);
 
   useEffect(() => {
     const fetchPostAndRelated = async () => {
       if (!slug) {
         setLoading(false);
+        setCommentsLoading(false);
         return;
       }
 
       setLoading(true);
+      setCommentsLoading(true);
       try {
         const previewQuery = isPreview ? '?preview=1' : '';
-        const postRes = await fetch(`/api/blog/${slug}${previewQuery}`);
+        const [postRes, commentsRes] = await Promise.all([
+          fetch(`/api/blog/${slug}${previewQuery}`),
+          fetch(`/api/blog/${slug}/comments?limit=50`),
+        ]);
 
         if (!postRes.ok) {
           setPost(null);
           setRelatedPosts([]);
+          setComments([]);
+          setCommentsLoading(false);
           return;
         }
 
         const postData: BlogPost = await postRes.json();
         setPost(postData);
+
+        if (commentsRes.ok) {
+          const commentData = await commentsRes.json();
+          setComments(Array.isArray(commentData.data) ? commentData.data : []);
+        } else {
+          setComments([]);
+        }
+        setCommentsLoading(false);
 
         const primaryCategory = postData.categories[0]?.slug;
         if (!primaryCategory) {
@@ -235,6 +281,8 @@ export default function BlogPostPage() {
         console.error('Error fetching blog post:', error);
         setPost(null);
         setRelatedPosts([]);
+        setComments([]);
+        setCommentsLoading(false);
       } finally {
         setLoading(false);
       }
@@ -244,6 +292,16 @@ export default function BlogPostPage() {
   }, [slug, isPreview]);
 
   const parsed = useMemo(() => parseContent(post?.content || ''), [post?.content]);
+
+  const formatCommentDate = (dateValue: string) => {
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
 
   const getPostUrl = () => {
     if (!post) return '';
@@ -295,6 +353,46 @@ export default function BlogPostPage() {
     return () => clearTimeout(timer);
   }, [shareNotice]);
 
+  const handleCommentSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const content = commentContent.trim();
+
+    if (!content) {
+      setCommentError('Comment cannot be empty');
+      setCommentSuccess('');
+      return;
+    }
+
+    if (!post) return;
+
+    setCommentSubmitting(true);
+    setCommentError('');
+    setCommentSuccess('');
+
+    try {
+      const response = await fetch(`/api/blog/${post.slug}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        setCommentError(data.error || 'Failed to post comment');
+        return;
+      }
+
+      setComments((current) => [data, ...current]);
+      setCommentContent('');
+      setCommentSuccess('Comment posted');
+    } catch (error) {
+      console.error('Error posting comment:', error);
+      setCommentError('Failed to post comment');
+    } finally {
+      setCommentSubmitting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -316,7 +414,7 @@ export default function BlogPostPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="mx-auto max-w-5xl">
       <Link href="/blog" className="mb-6 inline-flex items-center gap-2 text-sm text-brand-muted hover:text-brand-text">
         <ArrowLeft className="h-4 w-4" />
         Back to Blog
@@ -330,7 +428,7 @@ export default function BlogPostPage() {
 
       <article>
         <header className="mb-8">
-          <div className="mb-4 flex gap-2">
+          <div className="mb-4 flex flex-wrap gap-2">
             {post.categories.map((category) => (
               <Link
                 key={category.id}
@@ -342,7 +440,7 @@ export default function BlogPostPage() {
             ))}
           </div>
 
-          <h1 className="text-4xl font-bold">{post.title}</h1>
+          <h1 className="break-words text-3xl font-bold sm:text-4xl md:text-5xl">{post.title}</h1>
 
           <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-brand-muted">
               <div className="flex items-center gap-2">
@@ -377,7 +475,7 @@ export default function BlogPostPage() {
         </header>
 
         {parsed.toc.length > 0 && (
-          <aside className="ui-card mb-8 p-4">
+          <aside className="ui-card mb-8 p-4 sm:p-5">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-muted">Table of Contents</h2>
             <div className="mt-3 space-y-1">
               {parsed.toc.map((item) => (
@@ -405,7 +503,7 @@ export default function BlogPostPage() {
           </div>
         )}
 
-        <div className="space-y-4">{parsed.elements}</div>
+        <div className="space-y-4 break-words text-[15px] sm:text-base">{parsed.elements}</div>
 
         <div className="mt-12 border-t ui-border pt-8">
           <p className="font-medium">Share this article</p>
@@ -439,6 +537,89 @@ export default function BlogPostPage() {
           </div>
           {shareNotice && <p className="mt-3 text-xs text-brand-muted">{shareNotice}</p>}
         </div>
+
+        <section className="mt-12 border-t ui-border pt-8">
+          <h2 className="text-2xl font-semibold">Comments</h2>
+          <p className="mt-2 text-sm text-brand-muted">Join the discussion about this article.</p>
+
+          {user ? (
+            <form onSubmit={handleCommentSubmit} className="ui-card mt-4 p-4 sm:p-5">
+              <label htmlFor="comment-content" className="mb-2 block text-sm font-medium">
+                Add your comment
+              </label>
+              <textarea
+                id="comment-content"
+                value={commentContent}
+                onChange={(event) => {
+                  setCommentContent(event.target.value);
+                  setCommentError('');
+                  setCommentSuccess('');
+                }}
+                rows={4}
+                maxLength={2000}
+                placeholder="Write your thoughts..."
+                className="ui-input w-full"
+              />
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-xs text-brand-muted">{commentContent.trim().length}/2000</p>
+                <button type="submit" disabled={commentSubmitting} className="ui-btn ui-btn-primary disabled:opacity-60">
+                  {commentSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Posting...
+                    </>
+                  ) : (
+                    'Post comment'
+                  )}
+                </button>
+              </div>
+              {commentError && <p className="mt-2 text-sm text-red-500">{commentError}</p>}
+              {commentSuccess && <p className="mt-2 text-sm text-emerald-500">{commentSuccess}</p>}
+            </form>
+          ) : (
+            <div className="ui-card mt-4 p-4 sm:p-5">
+              <p className="text-sm text-brand-muted">
+                <Link href="/login" className="text-brand-primary hover:underline">
+                  Sign in
+                </Link>{' '}
+                to write a comment.
+              </p>
+            </div>
+          )}
+
+          <div className="mt-5 space-y-4">
+            {commentsLoading ? (
+              <div className="ui-card p-5 text-sm text-brand-muted">Loading comments...</div>
+            ) : comments.length > 0 ? (
+              comments.map((comment) => (
+                <div key={comment.id} className="ui-card p-4 sm:p-5">
+                  <div className="flex items-center gap-3">
+                    {comment.user.avatarUrl ? (
+                      <Image
+                        src={comment.user.avatarUrl}
+                        alt={comment.user.name || 'User'}
+                        width={36}
+                        height={36}
+                        className="h-9 w-9 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-primary/20 text-sm font-semibold text-brand-primary">
+                        {(comment.user.name || 'U').charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold">{comment.user.name || 'User'}</p>
+                      <p className="text-xs text-brand-muted">{formatCommentDate(comment.createdAt)}</p>
+                    </div>
+                  </div>
+                  <p className="mt-3 whitespace-pre-line text-sm text-brand-muted">{comment.content}</p>
+                </div>
+              ))
+            ) : (
+              <div className="ui-card p-5 text-sm text-brand-muted">No comments yet. Be the first to comment.</div>
+            )}
+          </div>
+        </section>
       </article>
 
       {relatedPosts.length > 0 && (
