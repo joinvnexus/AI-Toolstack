@@ -4,7 +4,7 @@ export const siteConfig = {
   name: 'AI Toolstack',
   description:
     'Discover, review, compare, and learn about the best AI tools in one modern platform.',
-  url: 'http://localhost:3000',
+  url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
   keywords: ['AI tools', 'artificial intelligence', 'AI software', 'AI directory'],
   author: {
     name: 'AI Toolstack',

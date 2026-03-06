@@ -44,9 +44,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className={`${fontSans.variable} ${fontDisplay.variable} min-h-screen`}>
+      <body className={`${fontSans.variable} ${fontDisplay.variable} min-h-screen font-content`}>
         <Navbar />
-        <main className="container-shell py-8 md:py-10">{children}</main>
+        <main className="container-shell ui-section">{children}</main>
         <Footer />
       </body>
     </html>
