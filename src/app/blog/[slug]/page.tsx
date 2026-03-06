@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Calendar, Clock, Loader2, ArrowLeft, Link2, Share2 } from 'lucide-react';
+import { Calendar, Clock, Loader2, ArrowLeft, Link2, Share2, Pencil, Trash2, X } from 'lucide-react';
 import Image from 'next/image';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
@@ -209,6 +209,9 @@ export default function BlogPostPage() {
   const [commentContent, setCommentContent] = useState('');
   const [commentError, setCommentError] = useState('');
   const [commentSuccess, setCommentSuccess] = useState('');
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState('');
+  const [commentActionLoadingId, setCommentActionLoadingId] = useState<string | null>(null);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [shareNotice, setShareNotice] = useState('');
@@ -390,6 +393,88 @@ export default function BlogPostPage() {
       setCommentError('Failed to post comment');
     } finally {
       setCommentSubmitting(false);
+    }
+  };
+
+  const handleStartEdit = (comment: BlogComment) => {
+    setEditingCommentId(comment.id);
+    setEditingContent(comment.content);
+    setCommentError('');
+    setCommentSuccess('');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCommentId(null);
+    setEditingContent('');
+  };
+
+  const handleUpdateComment = async (commentId: string) => {
+    const content = editingContent.trim();
+    if (!post) return;
+    if (!content) {
+      setCommentError('Comment cannot be empty');
+      return;
+    }
+
+    setCommentActionLoadingId(commentId);
+    setCommentError('');
+    setCommentSuccess('');
+
+    try {
+      const response = await fetch(`/api/blog/${post.slug}/comments/${commentId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        setCommentError(data.error || 'Failed to update comment');
+        return;
+      }
+
+      setComments((current) => current.map((item) => (item.id === commentId ? data : item)));
+      setEditingCommentId(null);
+      setEditingContent('');
+      setCommentSuccess('Comment updated');
+    } catch (error) {
+      console.error('Error updating comment:', error);
+      setCommentError('Failed to update comment');
+    } finally {
+      setCommentActionLoadingId(null);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!post) return;
+    if (!confirm('Delete this comment?')) return;
+
+    setCommentActionLoadingId(commentId);
+    setCommentError('');
+    setCommentSuccess('');
+
+    try {
+      const response = await fetch(`/api/blog/${post.slug}/comments/${commentId}`, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        setCommentError(data.error || 'Failed to delete comment');
+        return;
+      }
+
+      setComments((current) => current.filter((item) => item.id !== commentId));
+      if (editingCommentId === commentId) {
+        setEditingCommentId(null);
+        setEditingContent('');
+      }
+      setCommentSuccess('Comment deleted');
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      setCommentError('Failed to delete comment');
+    } finally {
+      setCommentActionLoadingId(null);
     }
   };
 
@@ -611,8 +696,67 @@ export default function BlogPostPage() {
                       <p className="truncate text-sm font-semibold">{comment.user.name || 'User'}</p>
                       <p className="text-xs text-brand-muted">{formatCommentDate(comment.createdAt)}</p>
                     </div>
+                    {user?.id === comment.user.id && (
+                      <div className="ml-auto flex items-center gap-2">
+                        <button
+                          onClick={() => handleStartEdit(comment)}
+                          className="ui-btn ui-btn-ghost !min-h-8 !rounded-lg !px-2 !py-1 text-xs"
+                          aria-label="Edit comment"
+                          disabled={commentActionLoadingId === comment.id}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteComment(comment.id)}
+                          className="ui-btn ui-btn-ghost !min-h-8 !rounded-lg !px-2 !py-1 text-xs text-red-500"
+                          aria-label="Delete comment"
+                          disabled={commentActionLoadingId === comment.id}
+                        >
+                          {commentActionLoadingId === comment.id ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-3.5 w-3.5" />
+                          )}
+                          Delete
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <p className="mt-3 whitespace-pre-line text-sm text-brand-muted">{comment.content}</p>
+                  {editingCommentId === comment.id ? (
+                    <div className="mt-3 space-y-3">
+                      <textarea
+                        value={editingContent}
+                        onChange={(event) => setEditingContent(event.target.value)}
+                        rows={3}
+                        maxLength={2000}
+                        className="ui-input w-full"
+                      />
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          onClick={() => handleUpdateComment(comment.id)}
+                          className="ui-btn ui-btn-primary !rounded-lg !px-3 !py-1.5 text-xs"
+                          disabled={commentActionLoadingId === comment.id}
+                        >
+                          {commentActionLoadingId === comment.id ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            'Save'
+                          )}
+                        </button>
+                        <button
+                          onClick={handleCancelEdit}
+                          className="ui-btn ui-btn-ghost !rounded-lg !px-3 !py-1.5 text-xs"
+                          disabled={commentActionLoadingId === comment.id}
+                        >
+                          <X className="h-3.5 w-3.5" />
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="mt-3 whitespace-pre-line text-sm text-brand-muted">{comment.content}</p>
+                  )}
                 </div>
               ))
             ) : (
