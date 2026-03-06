@@ -93,7 +93,7 @@ Complete these before starting new feature work.
 - [x] Centralize authZ (`requireAdmin`) and trusted role resolution.
 - [x] Add baseline tests for auth, admin write routes, and critical user flows.
 - [x] Add CI pipeline and required status checks.
-- [ ] Remove helper duplication (`slugify`, role checks, user sync).
+- [x] Remove helper duplication (`slugify`, role checks, user sync).
 
 ### Mid-Term (1 month)
 - [ ] Introduce service layer for API/business logic separation.

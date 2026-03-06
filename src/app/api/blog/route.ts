@@ -3,6 +3,7 @@ import type { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth/require-admin';
+import { slugify } from '@/lib/utils';
 
 const parsePrismaErrorCode = (error: unknown): string | null => {
   if (typeof error !== 'object' || error === null || !('code' in error)) {
@@ -12,14 +13,6 @@ const parsePrismaErrorCode = (error: unknown): string | null => {
   const code = (error as { code?: unknown }).code;
   return typeof code === 'string' ? code : null;
 };
-
-const slugify = (input: string): string =>
-  input
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/[\s_-]+/g, '-')
-    .replace(/^-+|-+$/g, '');
 
 const estimateReadTime = (content: string): number => {
   const wordsPerMinute = 200;

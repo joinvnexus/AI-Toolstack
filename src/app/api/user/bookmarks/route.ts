@@ -3,7 +3,7 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
-import { resolveRoleFromAppMetadata } from '@/lib/auth/role';
+import { syncUserFromAuth } from '@/lib/auth/sync-user';
 
 const createBookmarkSchema = z.object({
   toolId: z.string().trim().min(1, 'Tool ID is required'),
@@ -12,30 +12,6 @@ const createBookmarkSchema = z.object({
 const deleteBookmarkQuerySchema = z.object({
   toolId: z.string().trim().min(1, 'Tool ID is required'),
 });
-
-const ensurePrismaUser = async (user: {
-  id: string;
-  email?: string | null;
-  user_metadata?: { name?: string; avatar_url?: string };
-  app_metadata?: Record<string, unknown>;
-}) => {
-  await prisma.user.upsert({
-    where: { id: user.id },
-    create: {
-      id: user.id,
-      email: user.email || `${user.id}@local.invalid`,
-      name: user.user_metadata?.name || null,
-      avatarUrl: user.user_metadata?.avatar_url || null,
-      role: resolveRoleFromAppMetadata(user.app_metadata),
-    },
-    update: {
-      email: user.email || `${user.id}@local.invalid`,
-      name: user.user_metadata?.name || null,
-      avatarUrl: user.user_metadata?.avatar_url || null,
-      role: resolveRoleFromAppMetadata(user.app_metadata),
-    },
-  });
-};
 
 export async function GET() {
   try {
@@ -111,7 +87,7 @@ export async function POST(request: Request) {
       );
     }
 
-    await ensurePrismaUser(user);
+    await syncUserFromAuth(user);
 
     const parsedBody = createBookmarkSchema.safeParse(await request.json());
     if (!parsedBody.success) {

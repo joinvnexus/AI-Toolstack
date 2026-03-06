@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Menu, X, Search, LogOut, Settings, Bookmark, LayoutDashboard, Wrench, FileText, Users, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThemeToggle } from '@/components/layout/theme-toggle';
+import { resolveRoleFromAppMetadata, type AppRole } from '@/lib/auth/role';
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -15,15 +16,9 @@ const navLinks = [
   { href: '/blog', label: 'Blog' },
 ];
 
-type AppRole = 'USER' | 'ADMIN';
-
 const resolveUserRole = (authUser: SupabaseUser | null): AppRole => {
   if (!authUser) return 'USER';
-
-  const metadataRole = authUser.app_metadata?.role;
-  if (typeof metadataRole !== 'string') return 'USER';
-
-  return metadataRole.toUpperCase() === 'ADMIN' ? 'ADMIN' : 'USER';
+  return resolveRoleFromAppMetadata(authUser.app_metadata);
 };
 
 export function Navbar() {
