@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Calendar, Clock, Loader2, ArrowLeft, Link2, Share2 } from 'lucide-react';
+import Image from 'next/image';
 
 type BlogPost = {
   id: string;
@@ -147,9 +148,9 @@ const parseContent = (content: string): { elements: ReactNode[]; toc: TocItem[] 
       const text = trimmed.replace(/^#\s+/, '');
       const id = nextHeadingId(text);
       elements.push(
-        <h1 id={id} key={`h1-${key++}`} className="mt-10 scroll-mt-24 text-3xl font-bold text-brand-text">
+        <h2 id={id} key={`h1-${key++}`} className="mt-10 scroll-mt-24 text-2xl font-semibold text-brand-text">
           {text}
-        </h1>
+        </h2>
       );
       continue;
     }
@@ -344,14 +345,16 @@ export default function BlogPostPage() {
           <h1 className="text-4xl font-bold">{post.title}</h1>
 
           <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-brand-muted">
-            <div className="flex items-center gap-2">
-              {post.author.avatarUrl ? (
-                <img
-                  src={post.author.avatarUrl}
-                  alt={post.author.name || 'Author'}
-                  className="h-8 w-8 rounded-full object-cover"
-                />
-              ) : (
+              <div className="flex items-center gap-2">
+                {post.author.avatarUrl ? (
+                  <Image
+                    src={post.author.avatarUrl}
+                    alt={post.author.name || 'Author'}
+                    width={32}
+                    height={32}
+                    className="h-8 w-8 rounded-full object-cover"
+                  />
+                ) : (
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-primary/20">
                   {post.author.name?.charAt(0) || 'A'}
                 </div>
@@ -392,7 +395,13 @@ export default function BlogPostPage() {
 
         {post.featuredImage && (
           <div className="mb-8 overflow-hidden rounded-2xl">
-            <img src={post.featuredImage} alt={post.title} className="w-full object-cover" />
+            <Image
+              src={post.featuredImage}
+              alt={post.title}
+              width={1200}
+              height={630}
+              className="h-auto w-full object-cover"
+            />
           </div>
         )}
 

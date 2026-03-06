@@ -352,7 +352,7 @@ export default function ToolDetailsPage() {
                   href={primaryUrl} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-brand-primary px-3 py-2 text-sm font-medium text-white hover:bg-brand-primary/90 sm:w-auto sm:px-4"
+                  className="ui-btn ui-btn-primary w-full gap-2 !rounded-xl !px-3 !py-2 sm:w-auto sm:!px-4"
                 >
                   <ExternalLink className="h-4 w-4" />
                   {primaryLabel}
@@ -362,14 +362,14 @@ export default function ToolDetailsPage() {
                     href={tool.websiteUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border ui-border bg-brand-primary/10 px-3 py-2 text-sm font-medium hover:bg-brand-primary/15 sm:w-auto sm:px-4"
+                    className="ui-btn ui-btn-ghost w-full gap-2 !rounded-xl !px-3 !py-2 sm:w-auto sm:!px-4"
                   >
                     Official Site
                   </a>
                 )}
                 <button 
                   onClick={handleBookmark}
-                  className={`inline-flex h-10 w-10 items-center justify-center rounded-xl border ui-border text-sm font-medium hover:bg-brand-primary/15 ${
+                  className={`ui-btn ui-btn-ghost !h-10 !w-10 !rounded-xl !px-0 !py-0 ${
                     isBookmarked ? 'bg-brand-primary/20 text-brand-primary' : 'bg-brand-primary/10'
                   }`}
                   aria-label={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
@@ -377,7 +377,7 @@ export default function ToolDetailsPage() {
                   <Bookmark className={`h-4 w-4 ${isBookmarked ? 'fill-current' : ''}`} />
                 </button>
                 <button
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border ui-border bg-brand-primary/10 text-sm font-medium hover:bg-brand-primary/15"
+                  className="ui-btn ui-btn-ghost !h-10 !w-10 !rounded-xl !px-0 !py-0 bg-brand-primary/10"
                   aria-label="Share tool"
                 >
                   <Share2 className="h-4 w-4" />
@@ -413,10 +413,10 @@ export default function ToolDetailsPage() {
       <div className="border-b ui-border">
         <div className="-mb-px flex gap-2 overflow-x-auto sm:gap-8">
           {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium transition sm:py-4 ${
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+              className={`whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/60 sm:py-4 ${
                 activeTab === tab.id
                   ? 'border-brand-primary text-brand-text'
                   : 'border-transparent text-brand-muted hover:text-brand-text'
@@ -599,7 +599,7 @@ export default function ToolDetailsPage() {
                         key={star}
                         type="button"
                         onClick={() => setReviewRating(star)}
-                        className="focus:outline-none"
+                        className="rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/60"
                       >
                         <Star
                           className={`h-6 w-6 transition ${
@@ -628,7 +628,7 @@ export default function ToolDetailsPage() {
                 <button
                   type="submit"
                   disabled={submittingReview}
-                  className="flex items-center gap-2 rounded-lg bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary/90 disabled:opacity-50"
+                  className="ui-btn ui-btn-primary gap-2 !rounded-lg !px-4 !py-2 disabled:opacity-50"
                 >
                   {submittingReview ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -678,7 +678,7 @@ export default function ToolDetailsPage() {
                       </span>
                     </div>
                     <p className="mt-4 text-brand-muted">{review.content}</p>
-                    <button className="mt-3 text-sm text-brand-muted hover:text-brand-text">
+                    <button className="mt-3 text-sm text-brand-muted hover:text-brand-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/60">
                       Helpful ({review.helpfulCount})
                     </button>
                   </div>
@@ -700,7 +700,7 @@ export default function ToolDetailsPage() {
                 <Link
                   key={similarTool.id}
                   href={`/tools/${similarTool.slug}`}
-                  className="rounded-xl border ui-border bg-brand-primary/10 p-4 transition hover:border-brand-primary/60"
+                  className="rounded-xl border ui-border bg-brand-primary/10 p-4 transition hover:border-brand-primary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/60"
                 >
                   <h3 className="font-medium">{similarTool.name}</h3>
                   <p className="mt-2 line-clamp-2 text-sm text-brand-muted">{similarTool.description}</p>

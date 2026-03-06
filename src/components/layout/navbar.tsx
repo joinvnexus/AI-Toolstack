@@ -122,6 +122,8 @@ export function Navbar() {
             onClick={() => setSearchOpen(!searchOpen)}
             className="ui-btn ui-btn-ghost ui-ring !min-h-10 !min-w-10 !rounded-lg !px-0 !py-0 text-brand-muted hover:text-brand-text"
             aria-label="Search"
+            aria-expanded={searchOpen}
+            aria-controls="navbar-search-panel"
           >
             <Search className="h-5 w-5" />
           </button>
@@ -136,6 +138,8 @@ export function Navbar() {
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                 className="ui-btn ui-btn-ghost ui-ring !min-h-10 !rounded-lg !px-1.5 !py-1.5 text-brand-muted hover:text-brand-text"
                 aria-label="User menu"
+                aria-expanded={userMenuOpen}
+                aria-controls="navbar-user-menu"
               >
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-primary text-sm font-medium text-white">
                   {user.email?.charAt(0).toUpperCase() || 'U'}
@@ -144,12 +148,13 @@ export function Navbar() {
 
               <AnimatePresence>
                 {userMenuOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className="ui-card absolute right-0 mt-2 w-56 py-1"
-                  >
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      id="navbar-user-menu"
+                      className="ui-card absolute right-0 mt-2 w-56 py-1"
+                    >
                     <div className="border-b ui-border px-4 py-2">
                       <p className="truncate text-sm font-medium">{user.email}</p>
                       <p className="text-xs text-brand-muted">{isAdmin ? 'ADMIN' : 'USER'}</p>
@@ -191,6 +196,8 @@ export function Navbar() {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="ui-btn ui-btn-ghost ui-ring !min-h-10 !min-w-10 !rounded-lg !px-0 !py-0 text-brand-muted hover:text-brand-text md:hidden"
             aria-label="Menu"
+            aria-expanded={mobileMenuOpen}
+            aria-controls="navbar-mobile-menu"
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -203,6 +210,7 @@ export function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
+            id="navbar-search-panel"
             className="border-b ui-border bg-brand-surface/90"
           >
             <div className="container-shell py-4">
@@ -228,6 +236,7 @@ export function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
+            id="navbar-mobile-menu"
             className="border-b ui-border bg-brand-surface/95 md:hidden"
           >
             <div className="container-shell space-y-2 py-4">

@@ -63,11 +63,11 @@ Last updated: 2026-03-06
   - `src/app/dashboard/page.tsx`
 
 ### Day 6 - Accessibility + Image UX
-- [ ] Keyboard navigation pass
-- [ ] Visible focus ring everywhere
-- [ ] Heading hierarchy and contrast check
-- [ ] Replace blog detail `<img>` with `next/image`
-- [ ] Apply changes in:
+- [x] Keyboard navigation pass
+- [x] Visible focus ring everywhere
+- [x] Heading hierarchy and contrast check
+- [x] Replace blog detail `<img>` with `next/image`
+- [x] Apply changes in:
   - `src/app/globals.css`
   - `src/app/blog/[slug]/page.tsx`
   - `src/app/tools/[slug]/page.tsx`

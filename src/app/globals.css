@@ -137,8 +137,10 @@ select {
 }
 
 :focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--color-brand-primary) 70%, white);
+  outline: 2px solid color-mix(in srgb, var(--color-brand-primary) 78%, white);
   outline-offset: 2px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-brand-primary) 22%, transparent);
+  border-radius: 0.5rem;
 }
 
 @layer utilities {
