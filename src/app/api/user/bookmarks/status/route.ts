@@ -4,6 +4,9 @@ import { cookies } from 'next/headers';
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const bookmarkStatusQuerySchema = z.object({
   toolId: z.string().trim().min(1, 'Tool ID is required'),
 });

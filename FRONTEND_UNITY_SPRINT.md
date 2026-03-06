@@ -86,8 +86,8 @@ Last updated: 2026-03-06
   - `src/app/(auth)/signup/page.tsx`
 
 ## Extra Frontend Functionalities (After Sprint Core)
-- [ ] Saved filters with URL sync (`/tools`, `/search`)
-- [ ] Recent searches (with clear history)
+- [x] Saved filters with URL sync (`/tools`, `/search`)
+- [x] Recent searches (with clear history)
 - [ ] Optimistic bookmark/review action + undo toast
 - [ ] Consistent pagination/infinite scroll behavior
 - [ ] Reusable `EmptyState` and `ErrorState` components
