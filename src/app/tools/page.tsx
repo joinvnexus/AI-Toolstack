@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ToolCard } from '@/components/tools/tool-card';
-import { Search, Filter, X } from 'lucide-react';
+import { Search, Filter, X, SlidersHorizontal, Sparkles } from 'lucide-react';
 import { useDebouncedValueWithStatus } from '@/lib/hooks/use-debounced-value';
 import { EmptyState, ErrorState, ToolCardSkeleton } from '@/components/ui/skeleton';
 
@@ -195,23 +195,57 @@ function ToolsPageContent() {
     setIsMobileFiltersOpen(false);
   };
 
+  const clearAllFilters = () => {
+    setSearch('');
+    setSelectedCategory('All');
+    setSelectedPricing('All');
+    setSortBy('rating');
+    setPage(1);
+  };
+
+  const activeFilterCount =
+    (debouncedSearch.trim() ? 1 : 0) +
+    (normalizedCategory !== 'All' ? 1 : 0) +
+    (selectedPricing !== 'All' ? 1 : 0) +
+    (sortBy !== 'rating' ? 1 : 0);
+
+  const selectedCategoryLabel =
+    normalizedCategory === 'All'
+      ? 'All Categories'
+      : categories.find((item) => item.slug === normalizedCategory)?.name || 'Category';
+  const selectedSortLabel = sortOptions.find((item) => item.value === sortBy)?.label || 'Top Rated';
+
   return (
-    <div className="space-y-10">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1>AI Tools Directory</h1>
-          <p className="mt-1 text-brand-muted">Discover the best AI tools for your needs</p>
+    <div className="space-y-6">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-brand-primary/10 via-brand-surface/35 to-brand-background px-5 py-6 sm:px-7">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="inline-flex items-center gap-2 rounded-full bg-brand-background/75 px-3 py-1 text-xs font-medium text-brand-primary ring-1 ring-inset ring-brand-primary/20">
+              <Sparkles className="h-3.5 w-3.5" />
+              Curated AI Stack
+            </p>
+            <h1 className="mt-3">AI Tools Directory</h1>
+            <p className="mt-1 text-brand-muted">Discover the best AI tools for your needs</p>
+          </div>
+          <button
+            onClick={() => setIsMobileFiltersOpen(true)}
+            className="ui-btn ui-btn-ghost self-start bg-brand-background/70 !rounded-xl !px-3 ring-1 ring-inset ring-brand-primary/20 lg:hidden"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            Filters
+            {activeFilterCount > 0 && (
+              <span className="rounded-full bg-brand-primary px-2 py-0.5 text-xs text-white">{activeFilterCount}</span>
+            )}
+          </button>
         </div>
-        <button
-          onClick={() => setIsMobileFiltersOpen(true)}
-          className="ui-btn ui-btn-ghost self-start !rounded-lg !px-3 lg:hidden"
-        >
-          <Filter className="h-4 w-4" />
-          Filters
-        </button>
+        <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
+          <span className="rounded-full bg-brand-background/80 px-3 py-1 text-brand-muted">{selectedCategoryLabel}</span>
+          <span className="rounded-full bg-brand-background/80 px-3 py-1 text-brand-muted">{selectedPricing}</span>
+          <span className="rounded-full bg-brand-background/80 px-3 py-1 text-brand-muted">{selectedSortLabel}</span>
+        </div>
       </div>
 
-      <div className="flex flex-col gap-4 lg:flex-row">
+      <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
         {isMobileFiltersOpen && (
           <button
             aria-label="Close filters"
@@ -222,67 +256,79 @@ function ToolsPageContent() {
 
         {/* Filters Sidebar */}
         <aside
-          className={`fixed inset-y-0 right-0 z-50 w-[min(22rem,92vw)] overflow-y-auto p-3 transition-transform duration-200 lg:static lg:z-auto lg:w-64 lg:flex-shrink-0 lg:p-0 ${
+          className={`fixed inset-y-0 right-0 z-50 w-[min(22rem,92vw)] overflow-y-auto p-3 transition-transform duration-200 lg:sticky lg:top-24 lg:z-auto lg:h-[calc(100vh-7rem)] lg:w-auto lg:self-start lg:p-0 ${
             isMobileFiltersOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'
           }`}
         >
-          <div className="ui-card h-full p-3 sm:p-5 lg:h-auto">
+          <div className="h-full rounded-2xl bg-brand-background/95 p-3 ring-1 ring-inset ring-brand-primary/15 sm:p-5 lg:rounded-none lg:bg-transparent lg:p-0 lg:ring-0">
             <div className="mb-4 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4" />
                 <h3 className="font-medium">Filters</h3>
               </div>
-              <button
-                onClick={() => setIsMobileFiltersOpen(false)}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border ui-border bg-brand-surface lg:hidden"
-                aria-label="Close filters"
-              >
-                <X className="h-4 w-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                {activeFilterCount > 0 && (
+                  <span className="rounded-full bg-brand-primary/15 px-2 py-0.5 text-xs text-brand-primary">
+                    {activeFilterCount} active
+                  </span>
+                )}
+                <button
+                  onClick={() => setIsMobileFiltersOpen(false)}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border ui-border bg-brand-surface lg:hidden"
+                  aria-label="Close filters"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
             </div>
-            
+
             {/* Categories */}
             <div className="space-y-3">
-              <h4 className="text-sm font-medium text-brand-muted">Category</h4>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-1">
-                  <button
-                    onClick={() => handleCategoryChange('All')}
-                    className={`min-h-11 w-full rounded-lg px-3 py-2 text-sm text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/50 active:scale-[0.99] ${
-                      normalizedCategory === 'All'
-                        ? 'bg-brand-primary text-white'
-                        : 'bg-brand-primary/10 hover:bg-brand-primary/15'
-                    }`}
-                  >
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-brand-muted">Category</h4>
+              <div className="grid max-h-72 grid-cols-2 gap-2 overflow-auto pr-1 sm:grid-cols-3 lg:grid-cols-1">
+                <button
+                  onClick={() => handleCategoryChange('All')}
+                  className={`min-h-11 w-full rounded-xl px-3 py-2 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/50 active:scale-[0.99] ${
+                    normalizedCategory === 'All'
+                      ? 'bg-brand-primary text-white'
+                      : 'bg-brand-surface hover:bg-brand-primary/10'
+                  }`}
+                >
                   All
                 </button>
                 {categories.map((category) => (
                   <button
                     key={category.slug}
                     onClick={() => handleCategoryChange(category.slug)}
-                    className={`min-h-11 w-full rounded-lg px-3 py-2 text-sm text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/50 active:scale-[0.99] ${
+                    className={`min-h-11 w-full rounded-xl px-3 py-2 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/50 active:scale-[0.99] ${
                       normalizedCategory === category.slug
                         ? 'bg-brand-primary text-white'
-                        : 'bg-brand-primary/10 hover:bg-brand-primary/15'
+                        : 'bg-brand-surface hover:bg-brand-primary/10'
                     }`}
                   >
-                    {category.name}
+                    <span className="flex items-center justify-between gap-2">
+                      <span className="line-clamp-1">{category.name}</span>
+                      <span className={`text-xs ${normalizedCategory === category.slug ? 'text-white/90' : 'text-brand-muted'}`}>
+                        {category.toolCount}
+                      </span>
+                    </span>
                   </button>
                 ))}
               </div>
             </div>
 
             {/* Pricing */}
-            <div className="space-y-3 mt-6">
-              <h4 className="text-sm font-medium text-brand-muted">Pricing</h4>
+            <div className="mt-6 space-y-3">
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-brand-muted">Pricing</h4>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-2">
                 {pricingOptions.map((pricing) => (
                   <button
                     key={pricing}
                     onClick={() => handlePricingChange(pricing)}
-                    className={`min-h-11 w-full rounded-lg px-3 py-2 text-sm text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/50 active:scale-[0.99] ${
+                    className={`min-h-11 w-full rounded-xl px-3 py-2 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/50 active:scale-[0.99] ${
                       selectedPricing === pricing
                         ? 'bg-brand-primary text-white'
-                        : 'bg-brand-primary/10 hover:bg-brand-primary/15'
+                        : 'bg-brand-surface hover:bg-brand-primary/10'
                     }`}
                   >
                     {pricing}
@@ -290,44 +336,71 @@ function ToolsPageContent() {
                 ))}
               </div>
             </div>
+
+            <div className="mt-6 grid grid-cols-2 gap-2 border-t ui-border pt-4">
+              <button
+                onClick={clearAllFilters}
+                className="ui-btn ui-btn-ghost !rounded-xl !px-3 !py-2"
+                disabled={activeFilterCount === 0}
+              >
+                Clear
+              </button>
+              <button
+                onClick={() => setIsMobileFiltersOpen(false)}
+                className="ui-btn ui-btn-primary !rounded-xl !px-3 !py-2 lg:hidden"
+              >
+                Apply
+              </button>
+            </div>
           </div>
         </aside>
 
         {/* Main Content */}
         <div className="flex-1 space-y-6">
           {/* Search and Sort */}
-          <div className="ui-card p-3 sm:p-4">
+          <div className="rounded-2xl bg-brand-background p-3 ring-1 ring-inset ring-brand-primary/15 sm:p-4">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b ui-border pb-3 text-xs text-brand-muted">
+              <span>Live Search & Sort</span>
+              <span>{activeFilterCount} active filter{activeFilterCount === 1 ? '' : 's'}</span>
+            </div>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <form onSubmit={handleSearch} className="min-w-0 flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-muted" />
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search tools..."
-                  className="ui-input ui-input-icon w-full py-2.5 pr-4"
-                />
-              </div>
-            </form>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="ui-input w-full min-w-0 sm:w-52"
-            >
-              {sortOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
+              <form onSubmit={handleSearch} className="min-w-0 flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-muted" />
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search tools..."
+                    className="ui-input ui-input-icon w-full rounded-xl py-2.5 pr-4"
+                  />
+                </div>
+              </form>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="ui-input w-full min-w-0 rounded-xl sm:w-52"
+              >
+                {sortOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Results Count */}
-          <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-1">
             <p className="text-sm text-brand-muted">Showing {tools.length} tools</p>
-            {isDebouncing && <p className="text-xs text-brand-muted">Updating results...</p>}
+            <div className="flex items-center gap-2">
+              {activeFilterCount > 0 && (
+                <button onClick={clearAllFilters} className="text-xs text-brand-primary hover:underline">
+                  Reset all filters
+                </button>
+              )}
+              {isDebouncing && <p className="text-xs text-brand-muted">Updating results...</p>}
+            </div>
           </div>
 
           {/* Tools Grid */}
@@ -369,13 +442,7 @@ function ToolsPageContent() {
               title="No tools found"
               description="Try changing search, category, or pricing filters."
               actionLabel="Clear filters"
-              onAction={() => {
-                setSearch('');
-                setSelectedCategory('All');
-                setSelectedPricing('All');
-                setSortBy('rating');
-                setPage(1);
-              }}
+              onAction={clearAllFilters}
             />
           )}
 
@@ -426,5 +493,3 @@ export default function ToolsPage() {
     </Suspense>
   );
 }
-
-
