@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
 import { Menu, X, Search, LogOut, Settings, Bookmark, LayoutDashboard, Wrench, FileText, Users, Star } from 'lucide-react';
@@ -14,6 +14,8 @@ const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/tools', label: 'Tools' },
   { href: '/blog', label: 'Blog' },
+  { href: '/about', label: 'About' },
+  { href: '/contact', label: 'Contact' },
 ];
 
 const resolveUserRole = (authUser: SupabaseUser | null): AppRole => {
@@ -23,6 +25,7 @@ const resolveUserRole = (authUser: SupabaseUser | null): AppRole => {
 
 export function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
   const supabase = createClient();
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,6 +64,7 @@ export function Navbar() {
     await supabase.auth.signOut();
     setUser(null);
     setUserMenuOpen(false);
+    setMobileMenuOpen(false);
     router.push('/');
     router.refresh();
   };
@@ -97,6 +101,7 @@ export function Navbar() {
     : [];
 
   const dropdownLinks = isAdmin ? adminLinks : userLinks;
+  const isLinkActive = (href: string) => (href === '/' ? pathname === '/' : pathname?.startsWith(href));
 
   return (
     <header className="sticky top-0 z-50 border-b ui-border bg-brand-background/80 backdrop-blur-xl">
@@ -105,12 +110,16 @@ export function Navbar() {
           <span className="text-brand-primary">AI</span> Toolstack
         </Link>
 
-        <div className="hidden items-center gap-6 md:flex">
+        <div className="hidden items-center gap-2 rounded-xl border ui-border bg-brand-surface/60 p-1.5 md:flex">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-brand-muted transition hover:text-brand-text"
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                isLinkActive(link.href)
+                  ? 'bg-brand-primary/15 text-brand-text'
+                  : 'text-brand-muted hover:bg-brand-primary/10 hover:text-brand-text'
+              }`}
             >
               {link.label}
             </Link>
@@ -136,7 +145,9 @@ export function Navbar() {
             <div className="relative">
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="ui-btn ui-btn-ghost ui-ring !min-h-10 !rounded-lg !px-1.5 !py-1.5 text-brand-muted hover:text-brand-text"
+                className={`ui-btn ui-btn-ghost ui-ring !min-h-10 !rounded-lg !px-1.5 !py-1.5 text-brand-muted hover:text-brand-text ${
+                  userMenuOpen ? '!bg-brand-primary/10' : ''
+                }`}
                 aria-label="User menu"
                 aria-expanded={userMenuOpen}
                 aria-controls="navbar-user-menu"
@@ -192,15 +203,17 @@ export function Navbar() {
             </div>
           )}
 
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="ui-btn ui-btn-ghost ui-ring !min-h-10 !min-w-10 !rounded-lg !px-0 !py-0 text-brand-muted hover:text-brand-text md:hidden"
-            aria-label="Menu"
-            aria-expanded={mobileMenuOpen}
-            aria-controls="navbar-mobile-menu"
-          >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+          <div className="md:hidden">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="ui-btn ui-btn-ghost ui-ring !min-h-10 !min-w-10 !rounded-lg !px-0 !py-0 text-brand-muted hover:text-brand-text"
+              aria-label="Menu"
+              aria-expanded={mobileMenuOpen}
+              aria-controls="navbar-mobile-menu"
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -245,13 +258,41 @@ export function Navbar() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block rounded-lg px-4 py-2 text-brand-muted hover:bg-brand-primary/10 hover:text-brand-text"
+                  className={`block rounded-lg px-4 py-2 ${
+                    isLinkActive(link.href)
+                      ? 'bg-brand-primary/15 text-brand-text'
+                      : 'text-brand-muted hover:bg-brand-primary/10 hover:text-brand-text'
+                  }`}
                 >
                   {link.label}
                 </Link>
               ))}
 
-              {user ? null : (
+              {user ? (
+                <div className="space-y-1 border-t ui-border pt-3">
+                  <p className="px-1 text-xs font-medium uppercase tracking-wide text-brand-muted">
+                    {isAdmin ? 'Admin Menu' : 'User Menu'}
+                  </p>
+                  {dropdownLinks.map((link) => (
+                    <Link
+                      key={`mobile-${link.href}-${link.label}`}
+                      href={link.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-2 rounded-lg px-4 py-2 text-brand-muted hover:bg-brand-primary/10 hover:text-brand-text"
+                    >
+                      <link.icon className="h-4 w-4" />
+                      {link.label}
+                    </Link>
+                  ))}
+                  <button
+                    onClick={handleSignOut}
+                    className="mt-1 flex w-full items-center gap-2 rounded-lg px-4 py-2 text-red-500 hover:bg-red-500/10"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
                 <div className="space-y-2 pt-2">
                   <Link
                     href="/login"
