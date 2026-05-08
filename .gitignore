@@ -54,3 +54,4 @@ coverage
 .vitest
 test-results
 junit.xml
+.env*.local
